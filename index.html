@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Animal Oracle — Daily Card Reading</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital@0;1&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --gold: #e8c96d;
+    --gold-light: #f5e4a0;
+    --deep: #1a1035;
+    --violet: #2d1b5e;
+    --soft-violet: #4a3080;
+    --pink: #f2c4d0;
+    --blue: #c4d8f2;
+    --mint: #c4f2e8;
+    --glow: rgba(232,201,109,0.35);
+  }
+
+  body {
+    min-height: 100vh;
+    background: radial-gradient(ellipse at 50% 0%, #2d1b5e 0%, #1a1035 55%, #0d0820 100%);
+    font-family: 'Lora', Georgia, serif;
+    color: #f0e8ff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 1rem;
+    overflow-x: hidden;
+  }
+
+  /* Stars background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 40% 8%, rgba(255,255,255,0.8) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 12%, rgba(255,255,255,0.7) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 85% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 18% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 32% 85%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 60% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1.5px 1.5px at 75% 80%, rgba(255,255,255,0.6) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 48% 90%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 92% 65%, rgba(255,255,255,0.5) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app-container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 480px;
+  }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 2rem; }
+
+  .header h1 {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-size: clamp(1.6rem, 5vw, 2.2rem);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    background: linear-gradient(135deg, #f5e4a0, #e8c96d, #f5e4a0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: none;
+    margin-bottom: 0.4rem;
+  }
+
+  .header .subtitle {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    color: rgba(232,201,109,0.7);
+    letter-spacing: 0.12em;
+  }
+
+  .header .ornament {
+    display: block;
+    font-size: 1rem;
+    color: var(--gold);
+    opacity: 0.7;
+    margin: 0.5rem 0;
+    letter-spacing: 0.3em;
+  }
+
+  /* Glowing container */
+  .card-stage {
+    width: 100%;
+    max-width: 340px;
+    aspect-ratio: 2 / 3.4;
+    position: relative;
+    perspective: 1200px;
+    margin-bottom: 2rem;
+    filter: drop-shadow(0 0 32px rgba(232,201,109,0.18));
+    transition: filter 0.4s;
+  }
+
+  .card-stage.glowing {
+    filter: drop-shadow(0 0 48px rgba(232,201,109,0.55)) drop-shadow(0 0 90px rgba(180,120,255,0.3));
+    animation: stageBreath 0.7s ease-in-out infinite alternate;
+  }
+
+  @keyframes stageBreath {
+    from { filter: drop-shadow(0 0 40px rgba(232,201,109,0.4)) drop-shadow(0 0 70px rgba(180,120,255,0.2)); }
+    to   { filter: drop-shadow(0 0 70px rgba(232,201,109,0.7)) drop-shadow(0 0 120px rgba(180,120,255,0.45)); }
+  }
+
+  /* Card inner — flips */
+  .card-inner {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 18px;
+  }
+
+  .card-inner.flipped { transform: rotateY(180deg); }
+
+  /* Shuffle animation */
+  .card-inner.shuffling {
+    animation: shuffleDance 3s ease-in-out forwards;
+  }
+
+  @keyframes shuffleDance {
+    0%   { transform: rotateY(0deg) rotateZ(0deg) translateY(0px); }
+    8%   { transform: rotateY(15deg) rotateZ(2deg) translateY(-6px); }
+    16%  { transform: rotateY(-10deg) rotateZ(-1.5deg) translateY(-12px); }
+    24%  { transform: rotateY(20deg) rotateZ(3deg) translateY(-5px); }
+    32%  { transform: rotateY(-15deg) rotateZ(-2deg) translateY(-15px); }
+    40%  { transform: rotateY(12deg) rotateZ(1deg) translateY(-8px); }
+    50%  { transform: rotateY(-8deg) rotateZ(-1deg) translateY(-18px); }
+    60%  { transform: rotateY(10deg) rotateZ(2deg) translateY(-10px); }
+    72%  { transform: rotateY(-5deg) rotateZ(-1deg) translateY(-20px); }
+    82%  { transform: rotateY(5deg) rotateZ(1deg) translateY(-14px); }
+    91%  { transform: rotateY(90deg) rotateZ(0deg) translateY(-5px); }
+    100% { transform: rotateY(180deg) rotateZ(0deg) translateY(0px); }
+  }
+
+  /* Card faces */
+  .card-face {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    overflow: hidden;
+  }
+
+  /* ===== CARD BACK ===== */
+  .card-back {
+    background: linear-gradient(160deg, #1e1245 0%, #2d1b5e 40%, #1a1035 100%);
+    border: 2px solid rgba(232,201,109,0.5);
+    box-shadow: inset 0 0 40px rgba(232,201,109,0.08), inset 0 0 80px rgba(100,60,180,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-back-inner {
+    width: 90%;
+    height: 92%;
+    border: 1px solid rgba(232,201,109,0.3);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(100,60,180,0.2) 0%, transparent 70%);
+  }
+
+  /* Celestial corner ornaments */
+  .card-back-inner::before,
+  .card-back-inner::after {
+    content: '✦';
+    position: absolute;
+    color: rgba(232,201,109,0.5);
+    font-size: 1.1rem;
+  }
+  .card-back-inner::before { top: 10px; left: 10px; }
+  .card-back-inner::after  { bottom: 10px; right: 10px; }
+
+  .back-corner-tr, .back-corner-bl {
+    position: absolute;
+    color: rgba(232,201,109,0.5);
+    font-size: 1.1rem;
+  }
+  .back-corner-tr { top: 10px; right: 10px; }
+  .back-corner-bl { bottom: 10px; left: 10px; }
+
+  .back-ring {
+    width: 68%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    border: 1px solid rgba(232,201,109,0.22);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: radial-gradient(circle, rgba(232,201,109,0.05) 0%, transparent 70%);
+  }
+
+  .back-ring::before {
+    content: '';
+    position: absolute;
+    inset: 6px;
+    border-radius: 50%;
+    border: 1px dashed rgba(232,201,109,0.18);
+  }
+
+  .star-key {
+    font-size: clamp(3rem, 14vw, 4.5rem);
+    filter: drop-shadow(0 0 16px rgba(232,201,109,0.6)) drop-shadow(0 0 32px rgba(232,201,109,0.3));
+    animation: keyFloat 4s ease-in-out infinite;
+    line-height: 1;
+  }
+
+  @keyframes keyFloat {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50%       { transform: translateY(-8px) rotate(6deg); }
+  }
+
+  .back-moons {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+  }
+
+  .back-moon {
+    position: absolute;
+    font-size: 0.75rem;
+    color: rgba(232,201,109,0.5);
+  }
+
+  .back-title {
+    margin-top: 1.2rem;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: clamp(0.75rem, 2.5vw, 0.9rem);
+    color: rgba(232,201,109,0.65);
+    letter-spacing: 0.18em;
+    text-align: center;
+  }
+
+  .back-dots {
+    display: flex;
+    gap: 6px;
+    margin-top: 0.7rem;
+  }
+
+  .back-dots span {
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: rgba(232,201,109,0.4);
+  }
+
+  .back-dots span:nth-child(2) { background: rgba(232,201,109,0.65); }
+
+  /* Celestial band top / bottom on card back */
+  .back-band {
+    position: absolute;
+    left: 10px; right: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: rgba(232,201,109,0.35);
+    font-size: 0.6rem;
+    letter-spacing: 0.4em;
+  }
+  .back-band.top { top: 26px; }
+  .back-band.bottom { bottom: 26px; }
+
+  /* ===== CARD FRONT ===== */
+  .card-front {
+    transform: rotateY(180deg);
+    border: 2px solid rgba(232,201,109,0.6);
+    box-shadow: inset 0 0 30px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .card-front-inner {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+
+  /* Card number top */
+  .card-number {
+    position: absolute;
+    top: 10px;
+    left: 14px;
+    font-family: 'Playfair Display', serif;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.55);
+    letter-spacing: 0.15em;
+    z-index: 3;
+  }
+
+  .card-stars-top {
+    position: absolute;
+    top: 10px;
+    right: 14px;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.6);
+    z-index: 3;
+    letter-spacing: 0.08em;
+  }
+
+  /* Illustration area */
+  .card-illustration {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    padding: 2.5rem 1rem 1rem;
+  }
+
+  /* Decorative ring around animal */
+  .animal-ring {
+    width: 62%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(2px);
+    border: 1.5px solid rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 0 30px rgba(255,255,255,0.15);
+  }
+
+  .animal-ring::before {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1px dashed rgba(255,255,255,0.2);
+  }
+
+  .animal-ring::after {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .animal-emoji {
+    font-size: clamp(3.2rem, 12vw, 5rem);
+    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.25));
+    animation: animalFloat 3.5s ease-in-out infinite;
+    line-height: 1;
+  }
+
+  @keyframes animalFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50%       { transform: translateY(-5px) scale(1.04); }
+  }
+
+  /* Corner ornaments on card front */
+  .front-corner {
+    position: absolute;
+    font-size: 0.55rem;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 0.05em;
+  }
+  .front-corner.tl { top: 24px; left: 10px; }
+  .front-corner.tr { top: 24px; right: 10px; }
+  .front-corner.bl { bottom: 4px; left: 10px; }
+  .front-corner.br { bottom: 4px; right: 10px; }
+
+  /* Floating particles */
+  .particle {
+    position: absolute;
+    width: 4px; height: 4px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    animation: particleDrift 4s ease-in-out infinite;
+  }
+  .particle:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
+  .particle:nth-child(2) { top: 35%; right: 12%; animation-delay: 0.8s; width:3px; height:3px; }
+  .particle:nth-child(3) { top: 65%; left: 18%; animation-delay: 1.6s; width:5px; height:5px; }
+  .particle:nth-child(4) { top: 55%; right: 15%; animation-delay: 2.4s; }
+  .particle:nth-child(5) { top: 78%; left: 35%; animation-delay: 3.2s; width:3px; height:3px; }
+
+  @keyframes particleDrift {
+    0%, 100% { transform: translate(0,0) scale(1); opacity: 0.4; }
+    33%       { transform: translate(6px,-8px) scale(1.2); opacity: 0.8; }
+    66%       { transform: translate(-4px,4px) scale(0.8); opacity: 0.3; }
+  }
+
+  /* Card text area */
+  .card-text-area {
+    background: rgba(0,0,0,0.28);
+    backdrop-filter: blur(6px);
+    border-top: 1px solid rgba(255,255,255,0.18);
+    padding: 0.9rem 1.1rem 1rem;
+    text-align: center;
+    position: relative;
+    z-index: 2;
+  }
+
+  .card-title-front {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(0.85rem, 3vw, 1.05rem);
+    font-weight: 700;
+    color: var(--gold-light);
+    letter-spacing: 0.08em;
+    margin-bottom: 0.3rem;
+    text-shadow: 0 0 12px rgba(232,201,109,0.5);
+  }
+
+  .card-divider {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    justify-content: center;
+    margin: 0.3rem 0;
+    color: rgba(232,201,109,0.5);
+    font-size: 0.55rem;
+    letter-spacing: 0.3em;
+  }
+
+  .card-message {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: clamp(0.72rem, 2.4vw, 0.82rem);
+    color: rgba(255,255,255,0.9);
+    line-height: 1.55;
+    text-shadow: 0 1px 6px rgba(0,0,0,0.4);
+  }
+
+  /* ===== BUTTON ===== */
+  .btn-draw {
+    position: relative;
+    padding: 0.9rem 2.4rem;
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(0.85rem, 3vw, 1rem);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--deep);
+    background: linear-gradient(135deg, #f5e4a0, #e8c96d, #d4a83a, #e8c96d);
+    background-size: 200% 200%;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 4px 20px rgba(232,201,109,0.4), 0 2px 8px rgba(0,0,0,0.3);
+    animation: btnGradient 4s ease infinite;
+    overflow: hidden;
+    margin-bottom: 2rem;
+    min-width: 220px;
+  }
+
+  @keyframes btnGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50%       { background-position: 100% 50%; }
+  }
+
+  .btn-draw::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50px;
+    background: linear-gradient(135deg, rgba(255,255,255,0.35), transparent 60%);
+    pointer-events: none;
+  }
+
+  .btn-draw:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 30px rgba(232,201,109,0.6), 0 4px 12px rgba(0,0,0,0.3);
+  }
+
+  .btn-draw:active { transform: translateY(0) scale(0.98); }
+
+  .btn-draw:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+    transform: none;
+  }
+
+  /* Status text */
+  .status-text {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 0.8rem;
+    color: rgba(232,201,109,0.6);
+    letter-spacing: 0.12em;
+    text-align: center;
+    min-height: 1.2em;
+    margin-bottom: 1.2rem;
+    animation: statusPulse 1.5s ease-in-out infinite;
+  }
+
+  .status-text.hidden { opacity: 0; animation: none; }
+
+  @keyframes statusPulse {
+    0%, 100% { opacity: 0.5; }
+    50%       { opacity: 1; }
+  }
+
+  /* ===== AD SPACE ===== */
+  .ad-space {
+    width: 100%;
+    max-width: 480px;
+    min-height: 60px;
+    border: 1px dashed rgba(232,201,109,0.2);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    background: rgba(255,255,255,0.03);
+    color: rgba(232,201,109,0.2);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    font-family: 'Lora', serif;
+  }
+
+  /* Card-specific backgrounds */
+  .bg-owl    { background: linear-gradient(145deg, #1a2a4a, #2c3e6b, #1e3355); }
+  .bg-fox    { background: linear-gradient(145deg, #3d1f10, #7a3520, #4a2010); }
+  .bg-bear   { background: linear-gradient(145deg, #1a2d1a, #2a4a30, #1e3522); }
+  .bg-butterfly { background: linear-gradient(145deg, #3a1a4a, #6b2a7a, #4a2060); }
+  .bg-cat    { background: linear-gradient(145deg, #1a1a3d, #2a2a6b, #1e1e4a); }
+  .bg-deer   { background: linear-gradient(145deg, #2d2010, #5a3a15, #3d2810); }
+  .bg-rabbit { background: linear-gradient(145deg, #3a1a2d, #6b2a55, #4a1a3a); }
+  .bg-raven  { background: linear-gradient(145deg, #151520, #252535, #1a1a28); }
+  .bg-ffox   { background: linear-gradient(145deg, #3d2510, #7a4520, #4a2e10); }
+  .bg-turtle { background: linear-gradient(145deg, #0f2d2a, #1a4a40, #0f3530); }
+  .bg-phoenix{ background: linear-gradient(145deg, #3d1010, #7a2020, #4a1515); }
+  .bg-dolphin{ background: linear-gradient(145deg, #102a3d, #1a4a6b, #10354a); }
+  .bg-mouse  { background: linear-gradient(145deg, #2a1a2d, #4a2a4f, #35203a); }
+  .bg-wolf   { background: linear-gradient(145deg, #1a2035, #2a3060, #1e2840); }
+  .bg-firefly{ background: linear-gradient(145deg, #1a2d10, #2a4f1a, #1e3815); }
+  .bg-bee    { background: linear-gradient(145deg, #2d2800, #5a4f00, #3d3800); }
+  .bg-seal   { background: linear-gradient(145deg, #102030, #1a3550, #102840); }
+  .bg-frog   { background: linear-gradient(145deg, #0f2d15, #1a5025, #102d18); }
+  .bg-elephant{ background: linear-gradient(145deg, #1f1f2d, #353548, #282835); }
+  .bg-hedgehog{ background: linear-gradient(145deg, #2d1a20, #503040, #3a2030); }
+
+  /* Responsive */
+  @media (max-width: 400px) {
+    .card-stage { max-width: 290px; }
+    .btn-draw { padding: 0.8rem 1.8rem; min-width: 190px; }
+  }
+
+  @media (min-width: 600px) {
+    .card-stage { max-width: 360px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-container">
+
+  <div class="header">
+    <h1>Animal Oracle</h1>
+    <span class="ornament">✦ ✧ ✦</span>
+    <p class="subtitle">Daily Guidance from the Animal Spirits</p>
+  </div>
+
+  <div class="card-stage" id="cardStage">
+    <div class="card-inner" id="cardInner">
+
+      <!-- CARD BACK -->
+      <div class="card-face card-back">
+        <div class="card-back-inner">
+          <span class="back-corner-tr">✦</span>
+          <span class="back-corner-bl">✦</span>
+          <div class="back-band top">✧ &nbsp; ✧ &nbsp; ✧</div>
+          <div class="back-ring">
+            <div class="back-moons"></div>
+            <div class="star-key">🗝️</div>
+          </div>
+          <div class="back-title">Animal Oracle</div>
+          <div class="back-dots">
+            <span></span><span></span><span></span>
+          </div>
+          <div class="back-band bottom">✧ &nbsp; ✧ &nbsp; ✧</div>
+        </div>
+      </div>
+
+      <!-- CARD FRONT (populated by JS) -->
+      <div class="card-face card-front" id="cardFront">
+        <div class="card-front-inner" id="cardFrontInner">
+          <div class="card-illustration" id="cardIllustration">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <span class="front-corner tl">✦</span>
+            <span class="front-corner tr">✦</span>
+            <span class="front-corner bl">✧</span>
+            <span class="front-corner br">✧</span>
+            <div class="card-number" id="cardNumber"></div>
+            <div class="card-stars-top">✦ ✧ ✦</div>
+            <div class="animal-ring">
+              <div class="animal-emoji" id="animalEmoji"></div>
+            </div>
+          </div>
+          <div class="card-text-area">
+            <div class="card-title-front" id="cardTitleFront"></div>
+            <div class="card-divider">✦ · · · ✦</div>
+            <div class="card-message" id="cardMessage"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="status-text hidden" id="statusText">Consulting the animal spirits...</div>
+
+  <button class="btn-draw" id="drawBtn" onclick="handleDraw()">✦ Draw Your Daily Oracle ✦</button>
+
+  <div class="ad-space">AD SPACE · 320×50</div>
+
+</div>
+
+<script>
+const CARDS = [
+  {
+    id: 1,
+    title: "The Stellar Owl",
+    emoji: "🦉",
+    bg: "bg-owl",
+    message: "Trust your intuition. Wisdom often speaks in whispers."
+  },
+  {
+    id: 2,
+    title: "The Fox of Secrets",
+    emoji: "🦊",
+    bg: "bg-fox",
+    message: "Curiosity opens doors others walk past. Follow the spark within you."
+  },
+  {
+    id: 3,
+    title: "The Bear of Stars",
+    emoji: "🐻",
+    bg: "bg-bear",
+    message: "Rest is sacred. Your deepest strength is renewed in stillness."
+  },
+  {
+    id: 4,
+    title: "The Butterfly Oracle",
+    emoji: "🦋",
+    bg: "bg-butterfly",
+    message: "Change is your birthright. The becoming is as beautiful as the arrival."
+  },
+  {
+    id: 5,
+    title: "The Moon Cat",
+    emoji: "🐈",
+    bg: "bg-cat",
+    message: "Walk softly through this day. Magic is drawn to those who listen."
+  },
+  {
+    id: 6,
+    title: "The Golden Deer",
+    emoji: "🦌",
+    bg: "bg-deer",
+    message: "You are exactly where you need to be. Move with grace, not urgency."
+  },
+  {
+    id: 7,
+    title: "The Dream Rabbit",
+    emoji: "🐰",
+    bg: "bg-rabbit",
+    message: "Your dreams are seeds. Plant them with belief and water them with patience."
+  },
+  {
+    id: 8,
+    title: "The Storm Raven",
+    emoji: "🐦",
+    bg: "bg-raven",
+    message: "After every storm, something new takes root. Hold on a little longer."
+  },
+  {
+    id: 9,
+    title: "The Ember Fox",
+    emoji: "🦊",
+    bg: "bg-ffox",
+    message: "Your cleverness is a rare gift. Use it with warmth and kindness."
+  },
+  {
+    id: 10,
+    title: "The Cosmic Turtle",
+    emoji: "🐢",
+    bg: "bg-turtle",
+    message: "Slow and steady reveals the deeper path. Patience is its own power."
+  },
+  {
+    id: 11,
+    title: "The Ember Phoenix",
+    emoji: "🦚",
+    bg: "bg-phoenix",
+    message: "You rise from what you thought would break you. This is how you were made."
+  },
+  {
+    id: 12,
+    title: "The Pearl Dolphin",
+    emoji: "🐬",
+    bg: "bg-dolphin",
+    message: "Joy is not a reward for hard work. It is your most natural state of being."
+  },
+  {
+    id: 13,
+    title: "The Velvet Mouse",
+    emoji: "🐭",
+    bg: "bg-mouse",
+    message: "Even the smallest steps move mountains over time. You are doing enough."
+  },
+  {
+    id: 14,
+    title: "The Silver Wolf",
+    emoji: "🐺",
+    bg: "bg-wolf",
+    message: "Trust your instincts and your people. Love and loyalty are your truest north."
+  },
+  {
+    id: 15,
+    title: "The Lantern Firefly",
+    emoji: "✨",
+    bg: "bg-firefly",
+    message: "Your light matters more than you will ever know. Keep shining, even softly."
+  },
+  {
+    id: 16,
+    title: "The Amber Bee",
+    emoji: "🐝",
+    bg: "bg-bee",
+    message: "Diligence and sweetness are not opposites. Both are yours to carry with pride."
+  },
+  {
+    id: 17,
+    title: "The Tide Seal",
+    emoji: "🦭",
+    bg: "bg-seal",
+    message: "Release what you cannot control to the waves. Then float, freely and fully."
+  },
+  {
+    id: 18,
+    title: "The Crystal Frog",
+    emoji: "🐸",
+    bg: "bg-frog",
+    message: "Transformation begins in the stillness between moments. You are already changing."
+  },
+  {
+    id: 19,
+    title: "The Sage Elephant",
+    emoji: "🐘",
+    bg: "bg-elephant",
+    message: "Memory and wisdom walk hand in hand. Honor all that you have carried."
+  },
+  {
+    id: 20,
+    title: "The Wish Hedgehog",
+    emoji: "🦔",
+    bg: "bg-hedgehog",
+    message: "Protect your softness — gentleness is one of the most powerful things you own."
+  }
+];
+
+let isFlipped = false;
+let isAnimating = false;
+let currentCard = null;
+let lastCardId = null;
+
+function pickCard() {
+  let card;
+  do {
+    card = CARDS[Math.floor(Math.random() * CARDS.length)];
+  } while (CARDS.length > 1 && card.id === lastCardId);
+  lastCardId = card.id;
+  return card;
+}
+
+function populateCard(card) {
+  const inner = document.getElementById('cardFrontInner');
+  // Remove old bg classes
+  CARDS.forEach(c => inner.classList.remove(c.bg));
+  inner.classList.add(card.bg);
+
+  document.getElementById('cardNumber').textContent = `No. ${String(card.id).padStart(2,'0')}`;
+  document.getElementById('animalEmoji').textContent = card.emoji;
+  document.getElementById('cardTitleFront').textContent = card.title;
+  document.getElementById('cardMessage').textContent = card.message;
+}
+
+function handleDraw() {
+  if (isAnimating) return;
+
+  if (!isFlipped) {
+    // Draw a new card
+    isAnimating = true;
+    const btn = document.getElementById('drawBtn');
+    const statusEl = document.getElementById('statusText');
+    const cardInner = document.getElementById('cardInner');
+    const cardStage = document.getElementById('cardStage');
+
+    const phrases = [
+      "Consulting the animal spirits...",
+      "Shuffling the fates...",
+      "The spirits are speaking...",
+      "Reading the celestial signs..."
+    ];
+    const phrase = phrases[Math.floor(Math.random() * phrases.length)];
+
+    btn.disabled = true;
+    btn.textContent = "✦ " + phrase.replace('...','') + "... ✦";
+    statusEl.textContent = phrase;
+    statusEl.classList.remove('hidden');
+
+    currentCard = pickCard();
+    populateCard(currentCard);
+
+    cardStage.classList.add('glowing');
+    cardInner.classList.add('shuffling');
+
+    setTimeout(() => {
+      cardInner.classList.remove('shuffling');
+      cardInner.classList.add('flipped');
+      cardStage.classList.remove('glowing');
+
+      isFlipped = true;
+      isAnimating = false;
+
+      btn.disabled = false;
+      btn.textContent = "✦ Draw Another Card ✦";
+      statusEl.classList.add('hidden');
+    }, 3000);
+
+  } else {
+    // Reset to card back
+    isAnimating = true;
+    const btn = document.getElementById('drawBtn');
+    const cardInner = document.getElementById('cardInner');
+
+    cardInner.style.transition = 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)';
+    cardInner.classList.remove('flipped');
+
+    setTimeout(() => {
+      isFlipped = false;
+      isAnimating = false;
+      btn.textContent = "✦ Draw Your Daily Oracle ✦";
+      cardInner.style.transition = '';
+    }, 750);
+  }
+}
+</script>
+</body>
+</html>
