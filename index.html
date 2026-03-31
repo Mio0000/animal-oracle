@@ -107,9 +107,10 @@
     aspect-ratio: 2 / 3.4;
     position: relative;
     perspective: 1200px;
-    margin-bottom: 2rem;
+    margin-bottom: 1rem;
     filter: drop-shadow(0 0 32px rgba(232,201,109,0.18));
     transition: filter 0.4s;
+    cursor: pointer;
   }
 
   .card-stage.glowing {
@@ -529,6 +530,23 @@
     50%       { opacity: 1; }
   }
 
+  .tap-hint {
+    font-family: 'Lora', serif;
+    font-size: 0.78rem;
+    color: rgba(232,201,109,0.55);
+    letter-spacing: 0.08em;
+    text-align: center;
+    margin-bottom: 1rem;
+    animation: hintPulse 2.5s ease-in-out infinite;
+  }
+
+  .tap-hint.hidden { display: none; }
+
+  @keyframes hintPulse {
+    0%, 100% { opacity: 0.4; transform: translateY(0); }
+    50%       { opacity: 0.9; transform: translateY(-2px); }
+  }
+
   /* ===== AD SPACE ===== */
   .ad-space {
     width: 100%;
@@ -591,7 +609,7 @@
     <p class="subtitle">Daily Guidance from the Animal Spirits</p>
   </div>
 
-  <div class="card-stage" id="cardStage">
+  <div class="card-stage" id="cardStage" onclick="handleDraw()" role="button" aria-label="Draw a card">
     <div class="card-inner" id="cardInner">
 
       <!-- CARD BACK -->
@@ -641,6 +659,8 @@
 
     </div>
   </div>
+
+  <div class="tap-hint" id="tapHint">👆 Tap the card or the button below</div>
 
   <div class="status-text hidden" id="statusText">Consulting the animal spirits...</div>
 
@@ -839,6 +859,7 @@ function handleDraw() {
     ];
     const phrase = phrases[Math.floor(Math.random() * phrases.length)];
 
+    document.getElementById('tapHint').classList.add('hidden');
     btn.disabled = true;
     btn.textContent = "✦ " + phrase.replace('...','') + "... ✦";
     statusEl.textContent = phrase;
@@ -877,6 +898,7 @@ function handleDraw() {
       isAnimating = false;
       btn.textContent = "✦ Draw Your Daily Oracle ✦";
       cardInner.style.transition = '';
+      document.getElementById('tapHint').classList.remove('hidden');
     }, 750);
   }
 }
