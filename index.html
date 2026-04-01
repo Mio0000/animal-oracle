@@ -6,603 +6,149 @@
 <title>Animal Oracle — Daily Card Reading</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital@0;1&display=swap');
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{--gold:#e8c96d;--gold-light:#f5e4a0;--deep:#1a1035}
+  body{min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#2d1b5e 0%,#1a1035 55%,#0d0820 100%);font-family:'Lora',Georgia,serif;color:#f0e8ff;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 1rem;overflow-x:hidden}
+  body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1px 1px at 10% 15%,rgba(255,255,255,.7) 0%,transparent 100%),radial-gradient(1px 1px at 25% 40%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 40% 8%,rgba(255,255,255,.8) 0%,transparent 100%),radial-gradient(1px 1px at 55% 30%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 70% 12%,rgba(255,255,255,.7) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 85% 45%,rgba(255,255,255,.6) 0%,transparent 100%),radial-gradient(1px 1px at 18% 70%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 60% 60%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 75% 80%,rgba(255,255,255,.6) 0%,transparent 100%),radial-gradient(1px 1px at 90% 20%,rgba(255,255,255,.5) 0%,transparent 100%);pointer-events:none;z-index:0}
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --gold: #e8c96d;
-    --gold-light: #f5e4a0;
-    --deep: #1a1035;
-    --violet: #2d1b5e;
-    --soft-violet: #4a3080;
-    --pink: #f2c4d0;
-    --blue: #c4d8f2;
-    --mint: #c4f2e8;
-    --glow: rgba(232,201,109,0.35);
+  /* ── Velvet shimmer beams ── */
+  .velvet-layer{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+  .vbeam{position:absolute;width:260px;border-radius:50%;filter:blur(60px);animation:vflow linear infinite}
+  .vbeam:nth-child(1){width:320px;height:900px;background:radial-gradient(ellipse,rgba(180,100,255,.07) 0%,transparent 70%);left:15%;top:-20%;animation-duration:18s;animation-delay:0s}
+  .vbeam:nth-child(2){width:280px;height:800px;background:radial-gradient(ellipse,rgba(232,201,109,.05) 0%,transparent 70%);left:55%;top:-10%;animation-duration:22s;animation-delay:-7s}
+  .vbeam:nth-child(3){width:200px;height:700px;background:radial-gradient(ellipse,rgba(100,150,255,.06) 0%,transparent 70%);left:78%;top:-15%;animation-duration:16s;animation-delay:-3s}
+  .vbeam:nth-child(4){width:240px;height:750px;background:radial-gradient(ellipse,rgba(255,150,200,.04) 0%,transparent 70%);left:30%;top:-5%;animation-duration:20s;animation-delay:-11s}
+  @keyframes vflow{
+    0%  {transform:translateY(-5%) rotate(-8deg) scaleX(1);  opacity:.4}
+    25% {transform:translateY(15%) rotate(4deg)  scaleX(1.1);opacity:.8}
+    50% {transform:translateY(35%) rotate(-6deg) scaleX(.9); opacity:.5}
+    75% {transform:translateY(55%) rotate(5deg)  scaleX(1.15);opacity:.7}
+    100%{transform:translateY(110%) rotate(-8deg) scaleX(1); opacity:.3}
   }
 
-  body {
-    min-height: 100vh;
-    background: radial-gradient(ellipse at 50% 0%, #2d1b5e 0%, #1a1035 55%, #0d0820 100%);
-    font-family: 'Lora', Georgia, serif;
-    color: #f0e8ff;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 2rem 1rem 1rem;
-    overflow-x: hidden;
+  /* ── Cursor sparkles ── */
+  .csparkle{position:fixed;pointer-events:none;z-index:9999;font-size:14px;line-height:1;user-select:none;animation:csfade 900ms ease-out forwards}
+  @keyframes csfade{
+    0%  {opacity:1;transform:translate(0,0) scale(1.2) rotate(0deg)}
+    100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0) rotate(var(--dr))}
   }
-
-  /* Stars background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.7) 0%, transparent 100%),
-      radial-gradient(1px 1px at 25% 40%, rgba(255,255,255,0.5) 0%, transparent 100%),
-      radial-gradient(1.5px 1.5px at 40% 8%, rgba(255,255,255,0.8) 0%, transparent 100%),
-      radial-gradient(1px 1px at 55% 30%, rgba(255,255,255,0.4) 0%, transparent 100%),
-      radial-gradient(1px 1px at 70% 12%, rgba(255,255,255,0.7) 0%, transparent 100%),
-      radial-gradient(1.5px 1.5px at 85% 45%, rgba(255,255,255,0.6) 0%, transparent 100%),
-      radial-gradient(1px 1px at 18% 70%, rgba(255,255,255,0.4) 0%, transparent 100%),
-      radial-gradient(1px 1px at 32% 85%, rgba(255,255,255,0.5) 0%, transparent 100%),
-      radial-gradient(1px 1px at 60% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
-      radial-gradient(1.5px 1.5px at 75% 80%, rgba(255,255,255,0.6) 0%, transparent 100%),
-      radial-gradient(1px 1px at 90% 20%, rgba(255,255,255,0.5) 0%, transparent 100%),
-      radial-gradient(1px 1px at 5% 50%, rgba(255,255,255,0.3) 0%, transparent 100%),
-      radial-gradient(1px 1px at 48% 90%, rgba(255,255,255,0.4) 0%, transparent 100%),
-      radial-gradient(1px 1px at 92% 65%, rgba(255,255,255,0.5) 0%, transparent 100%);
-    pointer-events: none;
-    z-index: 0;
+  .app-container{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:480px}
+  .header{text-align:center;margin-bottom:1.8rem}
+  .header h1{font-family:'Playfair Display',serif;font-size:clamp(1.6rem,5vw,2.2rem);font-weight:700;letter-spacing:.06em;background:linear-gradient(135deg,#f5e4a0,#e8c96d,#f5e4a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.4rem}
+  .header .subtitle{font-family:'Lora',serif;font-style:italic;font-size:.85rem;color:rgba(232,201,109,.7);letter-spacing:.12em}
+  .header .ornament{display:block;font-size:1rem;color:var(--gold);opacity:.7;margin:.5rem 0;letter-spacing:.3em}
+  .card-stage{width:100%;max-width:340px;aspect-ratio:2/3.4;position:relative;perspective:1200px;margin-bottom:1rem;filter:drop-shadow(0 0 32px rgba(232,201,109,.18));transition:filter .4s;cursor:pointer}
+  .card-stage.glowing{animation:stageBreath .7s ease-in-out infinite alternate}
+  @keyframes stageBreath{from{filter:drop-shadow(0 0 40px rgba(232,201,109,.4)) drop-shadow(0 0 70px rgba(180,120,255,.2))}to{filter:drop-shadow(0 0 70px rgba(232,201,109,.7)) drop-shadow(0 0 120px rgba(180,120,255,.45))}}
+  .card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.4,0,.2,1);border-radius:18px}
+  .card-inner.flipped{transform:rotateY(180deg)}
+  .card-inner.shuffling{animation:shuffleDance 6s ease-in-out forwards}
+  @keyframes shuffleDance{
+    0%  {transform:rotateY(0deg)   rotateZ(0deg)    translateY(0px)}
+    7%  {transform:rotateY(10deg)  rotateZ(1.5deg)  translateY(-5px)}
+    15% {transform:rotateY(-8deg)  rotateZ(-1.2deg) translateY(-10px)}
+    23% {transform:rotateY(12deg)  rotateZ(2deg)    translateY(-5px)}
+    31% {transform:rotateY(-9deg)  rotateZ(-1.5deg) translateY(-13px)}
+    40% {transform:rotateY(8deg)   rotateZ(1deg)    translateY(-7px)}
+    49% {transform:rotateY(-6deg)  rotateZ(-.8deg)  translateY(-15px)}
+    57% {transform:rotateY(7deg)   rotateZ(1.2deg)  translateY(-9px)}
+    65% {transform:rotateY(-4deg)  rotateZ(-.7deg)  translateY(-14px)}
+    73% {transform:rotateY(5deg)   rotateZ(.8deg)   translateY(-8px)}
+    82% {transform:rotateY(-3deg)  rotateZ(-.5deg)  translateY(-10px)}
+    91% {transform:rotateY(90deg)  rotateZ(0deg)    translateY(-3px)}
+    100%{transform:rotateY(180deg) rotateZ(0deg)    translateY(0px)}
   }
-
-  .app-container {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 480px;
-  }
-
-  /* Header */
-  .header { text-align: center; margin-bottom: 2rem; }
-
-  .header h1 {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: clamp(1.6rem, 5vw, 2.2rem);
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    background: linear-gradient(135deg, #f5e4a0, #e8c96d, #f5e4a0);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: none;
-    margin-bottom: 0.4rem;
-  }
-
-  .header .subtitle {
-    font-family: 'Lora', serif;
-    font-style: italic;
-    font-size: 0.85rem;
-    color: rgba(232,201,109,0.7);
-    letter-spacing: 0.12em;
-  }
-
-  .header .ornament {
-    display: block;
-    font-size: 1rem;
-    color: var(--gold);
-    opacity: 0.7;
-    margin: 0.5rem 0;
-    letter-spacing: 0.3em;
-  }
-
-  /* Glowing container */
-  .card-stage {
-    width: 100%;
-    max-width: 340px;
-    aspect-ratio: 2 / 3.4;
-    position: relative;
-    perspective: 1200px;
-    margin-bottom: 1rem;
-    filter: drop-shadow(0 0 32px rgba(232,201,109,0.18));
-    transition: filter 0.4s;
-    cursor: pointer;
-  }
-
-  .card-stage.glowing {
-    filter: drop-shadow(0 0 48px rgba(232,201,109,0.55)) drop-shadow(0 0 90px rgba(180,120,255,0.3));
-    animation: stageBreath 0.7s ease-in-out infinite alternate;
-  }
-
-  @keyframes stageBreath {
-    from { filter: drop-shadow(0 0 40px rgba(232,201,109,0.4)) drop-shadow(0 0 70px rgba(180,120,255,0.2)); }
-    to   { filter: drop-shadow(0 0 70px rgba(232,201,109,0.7)) drop-shadow(0 0 120px rgba(180,120,255,0.45)); }
-  }
-
-  /* Card inner — flips */
-  .card-inner {
-    width: 100%;
-    height: 100%;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
-    border-radius: 18px;
-  }
-
-  .card-inner.flipped { transform: rotateY(180deg); }
-
-  /* Shuffle animation */
-  .card-inner.shuffling {
-    animation: shuffleDance 3s ease-in-out forwards;
-  }
-
-  @keyframes shuffleDance {
-    0%   { transform: rotateY(0deg) rotateZ(0deg) translateY(0px); }
-    8%   { transform: rotateY(15deg) rotateZ(2deg) translateY(-6px); }
-    16%  { transform: rotateY(-10deg) rotateZ(-1.5deg) translateY(-12px); }
-    24%  { transform: rotateY(20deg) rotateZ(3deg) translateY(-5px); }
-    32%  { transform: rotateY(-15deg) rotateZ(-2deg) translateY(-15px); }
-    40%  { transform: rotateY(12deg) rotateZ(1deg) translateY(-8px); }
-    50%  { transform: rotateY(-8deg) rotateZ(-1deg) translateY(-18px); }
-    60%  { transform: rotateY(10deg) rotateZ(2deg) translateY(-10px); }
-    72%  { transform: rotateY(-5deg) rotateZ(-1deg) translateY(-20px); }
-    82%  { transform: rotateY(5deg) rotateZ(1deg) translateY(-14px); }
-    91%  { transform: rotateY(90deg) rotateZ(0deg) translateY(-5px); }
-    100% { transform: rotateY(180deg) rotateZ(0deg) translateY(0px); }
-  }
-
-  /* Card faces */
-  .card-face {
-    position: absolute;
-    inset: 0;
-    border-radius: 18px;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    overflow: hidden;
-  }
-
-  /* ===== CARD BACK ===== */
-  .card-back {
-    background: linear-gradient(160deg, #1e1245 0%, #2d1b5e 40%, #1a1035 100%);
-    border: 2px solid rgba(232,201,109,0.5);
-    box-shadow: inset 0 0 40px rgba(232,201,109,0.08), inset 0 0 80px rgba(100,60,180,0.15);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .card-back-inner {
-    width: 90%;
-    height: 92%;
-    border: 1px solid rgba(232,201,109,0.3);
-    border-radius: 12px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    background:
-      radial-gradient(ellipse at 50% 50%, rgba(100,60,180,0.2) 0%, transparent 70%);
-  }
-
-  /* Celestial corner ornaments */
-  .card-back-inner::before,
-  .card-back-inner::after {
-    content: '✦';
-    position: absolute;
-    color: rgba(232,201,109,0.5);
-    font-size: 1.1rem;
-  }
-  .card-back-inner::before { top: 10px; left: 10px; }
-  .card-back-inner::after  { bottom: 10px; right: 10px; }
-
-  .back-corner-tr, .back-corner-bl {
-    position: absolute;
-    color: rgba(232,201,109,0.5);
-    font-size: 1.1rem;
-  }
-  .back-corner-tr { top: 10px; right: 10px; }
-  .back-corner-bl { bottom: 10px; left: 10px; }
-
-  .back-ring {
-    width: 68%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    border: 1px solid rgba(232,201,109,0.22);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    background: radial-gradient(circle, rgba(232,201,109,0.05) 0%, transparent 70%);
-  }
-
-  .back-ring::before {
-    content: '';
-    position: absolute;
-    inset: 6px;
-    border-radius: 50%;
-    border: 1px dashed rgba(232,201,109,0.18);
-  }
-
-  .star-key {
-    font-size: clamp(3rem, 14vw, 4.5rem);
-    filter: drop-shadow(0 0 16px rgba(232,201,109,0.6)) drop-shadow(0 0 32px rgba(232,201,109,0.3));
-    animation: keyFloat 4s ease-in-out infinite;
-    line-height: 1;
-  }
-
-  @keyframes keyFloat {
-    0%, 100% { transform: translateY(0) rotate(0deg); }
-    50%       { transform: translateY(-8px) rotate(6deg); }
-  }
-
-  .back-moons {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-  }
-
-  .back-moon {
-    position: absolute;
-    font-size: 0.75rem;
-    color: rgba(232,201,109,0.5);
-  }
-
-  .back-title {
-    margin-top: 1.2rem;
-    font-family: 'Playfair Display', serif;
-    font-style: italic;
-    font-size: clamp(0.75rem, 2.5vw, 0.9rem);
-    color: rgba(232,201,109,0.65);
-    letter-spacing: 0.18em;
-    text-align: center;
-  }
-
-  .back-dots {
-    display: flex;
-    gap: 6px;
-    margin-top: 0.7rem;
-  }
-
-  .back-dots span {
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: rgba(232,201,109,0.4);
-  }
-
-  .back-dots span:nth-child(2) { background: rgba(232,201,109,0.65); }
-
-  /* Celestial band top / bottom on card back */
-  .back-band {
-    position: absolute;
-    left: 10px; right: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    color: rgba(232,201,109,0.35);
-    font-size: 0.6rem;
-    letter-spacing: 0.4em;
-  }
-  .back-band.top { top: 26px; }
-  .back-band.bottom { bottom: 26px; }
-
-  /* ===== CARD FRONT ===== */
-  .card-front {
-    transform: rotateY(180deg);
-    border: 2px solid rgba(232,201,109,0.6);
-    box-shadow: inset 0 0 30px rgba(0,0,0,0.3);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .card-front-inner {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    border-radius: 16px;
-    overflow: hidden;
-  }
-
-  /* Card number top */
-  .card-number {
-    position: absolute;
-    top: 10px;
-    left: 14px;
-    font-family: 'Playfair Display', serif;
-    font-size: 0.65rem;
-    color: rgba(255,255,255,0.55);
-    letter-spacing: 0.15em;
-    z-index: 3;
-  }
-
-  .card-stars-top {
-    position: absolute;
-    top: 10px;
-    right: 14px;
-    font-size: 0.65rem;
-    color: rgba(255,255,255,0.6);
-    z-index: 3;
-    letter-spacing: 0.08em;
-  }
-
-  /* Illustration area */
-  .card-illustration {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    padding: 2.5rem 1rem 1rem;
-  }
-
-  /* Decorative ring around animal */
-  .animal-ring {
-    width: 62%;
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.12);
-    backdrop-filter: blur(2px);
-    border: 1.5px solid rgba(255,255,255,0.3);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    box-shadow: 0 0 30px rgba(255,255,255,0.15);
-  }
-
-  .animal-ring::before {
-    content: '';
-    position: absolute;
-    inset: -6px;
-    border-radius: 50%;
-    border: 1px dashed rgba(255,255,255,0.2);
-  }
-
-  .animal-ring::after {
-    content: '';
-    position: absolute;
-    inset: -12px;
-    border-radius: 50%;
-    border: 1px solid rgba(255,255,255,0.1);
-  }
-
-  .animal-emoji {
-    font-size: clamp(3.2rem, 12vw, 5rem);
-    filter: drop-shadow(0 4px 16px rgba(0,0,0,0.25));
-    animation: animalFloat 3.5s ease-in-out infinite;
-    line-height: 1;
-  }
-
-  @keyframes animalFloat {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50%       { transform: translateY(-5px) scale(1.04); }
-  }
-
-  /* Corner ornaments on card front */
-  .front-corner {
-    position: absolute;
-    font-size: 0.55rem;
-    color: rgba(255,255,255,0.4);
-    letter-spacing: 0.05em;
-  }
-  .front-corner.tl { top: 24px; left: 10px; }
-  .front-corner.tr { top: 24px; right: 10px; }
-  .front-corner.bl { bottom: 4px; left: 10px; }
-  .front-corner.br { bottom: 4px; right: 10px; }
-
-  /* Floating particles */
-  .particle {
-    position: absolute;
-    width: 4px; height: 4px;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.4);
-    animation: particleDrift 4s ease-in-out infinite;
-  }
-  .particle:nth-child(1) { top: 20%; left: 15%; animation-delay: 0s; }
-  .particle:nth-child(2) { top: 35%; right: 12%; animation-delay: 0.8s; width:3px; height:3px; }
-  .particle:nth-child(3) { top: 65%; left: 18%; animation-delay: 1.6s; width:5px; height:5px; }
-  .particle:nth-child(4) { top: 55%; right: 15%; animation-delay: 2.4s; }
-  .particle:nth-child(5) { top: 78%; left: 35%; animation-delay: 3.2s; width:3px; height:3px; }
-
-  @keyframes particleDrift {
-    0%, 100% { transform: translate(0,0) scale(1); opacity: 0.4; }
-    33%       { transform: translate(6px,-8px) scale(1.2); opacity: 0.8; }
-    66%       { transform: translate(-4px,4px) scale(0.8); opacity: 0.3; }
-  }
-
-  /* Card text area */
-  .card-text-area {
-    background: rgba(0,0,0,0.28);
-    backdrop-filter: blur(6px);
-    border-top: 1px solid rgba(255,255,255,0.18);
-    padding: 0.9rem 1.1rem 1rem;
-    text-align: center;
-    position: relative;
-    z-index: 2;
-  }
-
-  .card-title-front {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(0.85rem, 3vw, 1.05rem);
-    font-weight: 700;
-    color: var(--gold-light);
-    letter-spacing: 0.08em;
-    margin-bottom: 0.3rem;
-    text-shadow: 0 0 12px rgba(232,201,109,0.5);
-  }
-
-  .card-divider {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    justify-content: center;
-    margin: 0.3rem 0;
-    color: rgba(232,201,109,0.5);
-    font-size: 0.55rem;
-    letter-spacing: 0.3em;
-  }
-
-  .card-message {
-    font-family: 'Lora', serif;
-    font-style: italic;
-    font-size: clamp(0.72rem, 2.4vw, 0.82rem);
-    color: rgba(255,255,255,0.9);
-    line-height: 1.55;
-    text-shadow: 0 1px 6px rgba(0,0,0,0.4);
-  }
-
-  /* ===== BUTTON ===== */
-  .btn-draw {
-    position: relative;
-    padding: 0.9rem 2.4rem;
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(0.85rem, 3vw, 1rem);
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    color: var(--deep);
-    background: linear-gradient(135deg, #f5e4a0, #e8c96d, #d4a83a, #e8c96d);
-    background-size: 200% 200%;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s;
-    box-shadow: 0 4px 20px rgba(232,201,109,0.4), 0 2px 8px rgba(0,0,0,0.3);
-    animation: btnGradient 4s ease infinite;
-    overflow: hidden;
-    margin-bottom: 2rem;
-    min-width: 220px;
-  }
-
-  @keyframes btnGradient {
-    0%, 100% { background-position: 0% 50%; }
-    50%       { background-position: 100% 50%; }
-  }
-
-  .btn-draw::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50px;
-    background: linear-gradient(135deg, rgba(255,255,255,0.35), transparent 60%);
-    pointer-events: none;
-  }
-
-  .btn-draw:hover {
-    transform: translateY(-2px) scale(1.03);
-    box-shadow: 0 8px 30px rgba(232,201,109,0.6), 0 4px 12px rgba(0,0,0,0.3);
-  }
-
-  .btn-draw:active { transform: translateY(0) scale(0.98); }
-
-  .btn-draw:disabled {
-    cursor: not-allowed;
-    opacity: 0.7;
-    transform: none;
-  }
-
-  /* Status text */
-  .status-text {
-    font-family: 'Lora', serif;
-    font-style: italic;
-    font-size: 0.8rem;
-    color: rgba(232,201,109,0.6);
-    letter-spacing: 0.12em;
-    text-align: center;
-    min-height: 1.2em;
-    margin-bottom: 1.2rem;
-    animation: statusPulse 1.5s ease-in-out infinite;
-  }
-
-  .status-text.hidden { opacity: 0; animation: none; }
-
-  @keyframes statusPulse {
-    0%, 100% { opacity: 0.5; }
-    50%       { opacity: 1; }
-  }
-
-  .tap-hint {
-    font-family: 'Lora', serif;
-    font-size: 0.78rem;
-    color: rgba(232,201,109,0.55);
-    letter-spacing: 0.08em;
-    text-align: center;
-    margin-bottom: 1rem;
-    animation: hintPulse 2.5s ease-in-out infinite;
-  }
-
-  .tap-hint.hidden { display: none; }
-
-  @keyframes hintPulse {
-    0%, 100% { opacity: 0.4; transform: translateY(0); }
-    50%       { opacity: 0.9; transform: translateY(-2px); }
-  }
-
-  /* ===== AD SPACE ===== */
-  .ad-space {
-    width: 100%;
-    max-width: 480px;
-    min-height: 60px;
-    border: 1px dashed rgba(232,201,109,0.2);
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-top: 1rem;
-    margin-bottom: 1.5rem;
-    background: rgba(255,255,255,0.03);
-    color: rgba(232,201,109,0.2);
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    font-family: 'Lora', serif;
-  }
-
-  /* Card-specific backgrounds */
-  .bg-owl    { background: linear-gradient(145deg, #1a2a4a, #2c3e6b, #1e3355); }
-  .bg-fox    { background: linear-gradient(145deg, #3d1f10, #7a3520, #4a2010); }
-  .bg-bear   { background: linear-gradient(145deg, #1a2d1a, #2a4a30, #1e3522); }
-  .bg-butterfly { background: linear-gradient(145deg, #3a1a4a, #6b2a7a, #4a2060); }
-  .bg-cat    { background: linear-gradient(145deg, #1a1a3d, #2a2a6b, #1e1e4a); }
-  .bg-deer   { background: linear-gradient(145deg, #2d2010, #5a3a15, #3d2810); }
-  .bg-rabbit { background: linear-gradient(145deg, #3a1a2d, #6b2a55, #4a1a3a); }
-  .bg-raven  { background: linear-gradient(145deg, #151520, #252535, #1a1a28); }
-  .bg-ffox   { background: linear-gradient(145deg, #3d2510, #7a4520, #4a2e10); }
-  .bg-turtle { background: linear-gradient(145deg, #0f2d2a, #1a4a40, #0f3530); }
-  .bg-phoenix{ background: linear-gradient(145deg, #3d1010, #7a2020, #4a1515); }
-  .bg-dolphin{ background: linear-gradient(145deg, #102a3d, #1a4a6b, #10354a); }
-  .bg-mouse  { background: linear-gradient(145deg, #2a1a2d, #4a2a4f, #35203a); }
-  .bg-wolf   { background: linear-gradient(145deg, #1a2035, #2a3060, #1e2840); }
-  .bg-firefly{ background: linear-gradient(145deg, #1a2d10, #2a4f1a, #1e3815); }
-  .bg-bee    { background: linear-gradient(145deg, #2d2800, #5a4f00, #3d3800); }
-  .bg-seal   { background: linear-gradient(145deg, #102030, #1a3550, #102840); }
-  .bg-frog   { background: linear-gradient(145deg, #0f2d15, #1a5025, #102d18); }
-  .bg-elephant{ background: linear-gradient(145deg, #1f1f2d, #353548, #282835); }
-  .bg-hedgehog{ background: linear-gradient(145deg, #2d1a20, #503040, #3a2030); }
-
-  /* Responsive */
-  @media (max-width: 400px) {
-    .card-stage { max-width: 290px; }
-    .btn-draw { padding: 0.8rem 1.8rem; min-width: 190px; }
-  }
-
-  @media (min-width: 600px) {
-    .card-stage { max-width: 360px; }
-  }
+  .card-face{position:absolute;inset:0;border-radius:18px;backface-visibility:hidden;-webkit-backface-visibility:hidden;overflow:hidden}
+  .card-back{background:linear-gradient(160deg,#1e1245 0%,#2d1b5e 40%,#1a1035 100%);border:2px solid rgba(232,201,109,.5);box-shadow:inset 0 0 40px rgba(232,201,109,.08),inset 0 0 80px rgba(100,60,180,.15);display:flex;align-items:center;justify-content:center}
+  .card-back-inner{width:90%;height:92%;border:1px solid rgba(232,201,109,.3);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;background:radial-gradient(ellipse at 50% 50%,rgba(100,60,180,.2) 0%,transparent 70%)}
+  .card-back-inner::before,.card-back-inner::after{content:'✦';position:absolute;color:rgba(232,201,109,.5);font-size:1.1rem}
+  .card-back-inner::before{top:10px;left:10px}
+  .card-back-inner::after{bottom:10px;right:10px}
+  .back-corner-tr,.back-corner-bl{position:absolute;color:rgba(232,201,109,.5);font-size:1.1rem}
+  .back-corner-tr{top:10px;right:10px}
+  .back-corner-bl{bottom:10px;left:10px}
+  .back-ring{width:68%;aspect-ratio:1;border-radius:50%;border:1px solid rgba(232,201,109,.22);display:flex;align-items:center;justify-content:center;position:relative;background:radial-gradient(circle,rgba(232,201,109,.05) 0%,transparent 70%)}
+  .back-ring::before{content:'';position:absolute;inset:6px;border-radius:50%;border:1px dashed rgba(232,201,109,.18)}
+  .star-key{font-size:clamp(3rem,14vw,4.5rem);filter:drop-shadow(0 0 16px rgba(232,201,109,.6)) drop-shadow(0 0 32px rgba(232,201,109,.3));animation:keyFloat 4s ease-in-out infinite;line-height:1}
+  @keyframes keyFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-8px) rotate(6deg)}}
+  .back-title{margin-top:1.2rem;font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(.75rem,2.5vw,.9rem);color:rgba(232,201,109,.65);letter-spacing:.18em;text-align:center}
+  .back-dots{display:flex;gap:6px;margin-top:.7rem}
+  .back-dots span{width:4px;height:4px;border-radius:50%;background:rgba(232,201,109,.4)}
+  .back-dots span:nth-child(2){background:rgba(232,201,109,.65)}
+  .back-band{position:absolute;left:10px;right:10px;display:flex;align-items:center;justify-content:center;gap:6px;color:rgba(232,201,109,.35);font-size:.6rem;letter-spacing:.4em}
+  .back-band.top{top:26px}
+  .back-band.bottom{bottom:26px}
+  .card-front{transform:rotateY(180deg);border:2px solid rgba(232,201,109,.6)}
+  .card-front-inner{width:100%;height:100%;display:flex;flex-direction:column;position:relative;border-radius:16px;overflow:hidden}
+  .card-number{position:absolute;top:10px;left:14px;font-family:'Playfair Display',serif;font-size:.65rem;color:rgba(255,255,255,.55);letter-spacing:.15em;z-index:3}
+  .card-stars-top{position:absolute;top:10px;right:14px;font-size:.65rem;color:rgba(255,255,255,.6);z-index:3;letter-spacing:.08em}
+  .card-illustration{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;padding:2.5rem 1rem 1rem}
+  .animal-svg{width:65%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 6px 20px rgba(0,0,0,.3));animation:animalFloat 3.5s ease-in-out infinite}
+  .animal-svg svg{width:100%;height:100%}
+  @keyframes animalFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-7px) scale(1.04)}}
+  .particle{position:absolute;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.4);animation:particleDrift 4s ease-in-out infinite}
+  .particle:nth-child(1){top:20%;left:15%;animation-delay:0s}
+  .particle:nth-child(2){top:35%;right:12%;animation-delay:.8s;width:3px;height:3px}
+  .particle:nth-child(3){top:65%;left:18%;animation-delay:1.6s;width:5px;height:5px}
+  .particle:nth-child(4){top:55%;right:15%;animation-delay:2.4s}
+  .particle:nth-child(5){top:78%;left:35%;animation-delay:3.2s;width:3px;height:3px}
+  @keyframes particleDrift{0%,100%{transform:translate(0,0) scale(1);opacity:.4}33%{transform:translate(6px,-8px) scale(1.2);opacity:.8}66%{transform:translate(-4px,4px) scale(.8);opacity:.3}}
+  .front-corner{position:absolute;font-size:.55rem;color:rgba(255,255,255,.4);letter-spacing:.05em}
+  .front-corner.tl{top:24px;left:10px}
+  .front-corner.tr{top:24px;right:10px}
+  .front-corner.bl{bottom:4px;left:10px}
+  .front-corner.br{bottom:4px;right:10px}
+  .card-text-area{background:rgba(0,0,0,.28);backdrop-filter:blur(6px);border-top:1px solid rgba(255,255,255,.18);padding:.9rem 1.1rem 1rem;text-align:center;position:relative;z-index:2}
+  .card-title-front{font-family:'Playfair Display',serif;font-size:clamp(.85rem,3vw,1.05rem);font-weight:700;color:var(--gold-light);letter-spacing:.08em;margin-bottom:.3rem;text-shadow:0 0 12px rgba(232,201,109,.5)}
+  .card-divider{display:flex;align-items:center;gap:6px;justify-content:center;margin:.3rem 0;color:rgba(232,201,109,.5);font-size:.55rem;letter-spacing:.3em}
+  .card-message{font-family:'Lora',serif;font-style:italic;font-size:clamp(.72rem,2.4vw,.82rem);color:rgba(255,255,255,.9);line-height:1.55;text-shadow:0 1px 6px rgba(0,0,0,.4)}
+  .tap-hint{font-family:'Lora',serif;font-size:.78rem;color:rgba(232,201,109,.55);letter-spacing:.08em;text-align:center;margin-bottom:1rem;animation:hintPulse 2.5s ease-in-out infinite}
+  .tap-hint.hidden{display:none}
+  @keyframes hintPulse{0%,100%{opacity:.4;transform:translateY(0)}50%{opacity:.9;transform:translateY(-2px)}}
+  .status-text{font-family:'Lora',serif;font-style:italic;font-size:.8rem;color:rgba(232,201,109,.6);letter-spacing:.12em;text-align:center;min-height:1.2em;margin-bottom:1.2rem;animation:statusPulse 1.5s ease-in-out infinite}
+  .status-text.hidden{opacity:0;animation:none}
+  @keyframes statusPulse{0%,100%{opacity:.5}50%{opacity:1}}
+  .btn-draw{position:relative;padding:.9rem 2.4rem;font-family:'Playfair Display',serif;font-size:clamp(.85rem,3vw,1rem);font-weight:700;letter-spacing:.1em;color:var(--deep);background:linear-gradient(135deg,#f5e4a0,#e8c96d,#d4a83a,#e8c96d);background-size:200% 200%;border:none;border-radius:50px;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 20px rgba(232,201,109,.4),0 2px 8px rgba(0,0,0,.3);animation:btnGradient 4s ease infinite;overflow:hidden;margin-bottom:2rem;min-width:220px}
+  @keyframes btnGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  .btn-draw::before{content:'';position:absolute;inset:0;border-radius:50px;background:linear-gradient(135deg,rgba(255,255,255,.35),transparent 60%);pointer-events:none}
+  .btn-draw:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 8px 30px rgba(232,201,109,.6),0 4px 12px rgba(0,0,0,.3)}
+  .btn-draw:active{transform:translateY(0) scale(.98)}
+  .btn-draw:disabled{cursor:not-allowed;opacity:.7;transform:none}
+  .ad-space{width:100%;max-width:480px;min-height:60px;border:1px dashed rgba(232,201,109,.2);border-radius:8px;display:flex;align-items:center;justify-content:center;margin-top:1rem;margin-bottom:1.5rem;background:rgba(255,255,255,.03);color:rgba(232,201,109,.2);font-size:.65rem;letter-spacing:.15em;font-family:'Lora',serif}
+  .bg-owl    {background:linear-gradient(145deg,#1a2a4a,#2c3e6b,#1e3355)}
+  .bg-fox    {background:linear-gradient(145deg,#3d1f10,#7a3520,#4a2010)}
+  .bg-bear   {background:linear-gradient(145deg,#1a2d1a,#2a4a30,#1e3522)}
+  .bg-butterfly{background:linear-gradient(145deg,#3a1a4a,#6b2a7a,#4a2060)}
+  .bg-cat    {background:linear-gradient(145deg,#1a1a3d,#2a2a6b,#1e1e4a)}
+  .bg-deer   {background:linear-gradient(145deg,#2d2010,#5a3a15,#3d2810)}
+  .bg-rabbit {background:linear-gradient(145deg,#3a1a2d,#6b2a55,#4a1a3a)}
+  .bg-raven  {background:linear-gradient(145deg,#151520,#252535,#1a1a28)}
+  .bg-ffox   {background:linear-gradient(145deg,#3d2510,#7a4520,#4a2e10)}
+  .bg-turtle {background:linear-gradient(145deg,#0f2d2a,#1a4a40,#0f3530)}
+  .bg-phoenix{background:linear-gradient(145deg,#3d1010,#7a2020,#4a1515)}
+  .bg-dolphin{background:linear-gradient(145deg,#102a3d,#1a4a6b,#10354a)}
+  .bg-mouse  {background:linear-gradient(145deg,#2a1a2d,#4a2a4f,#35203a)}
+  .bg-wolf   {background:linear-gradient(145deg,#1a2035,#2a3060,#1e2840)}
+  .bg-firefly{background:linear-gradient(145deg,#1a2d10,#2a4f1a,#1e3815)}
+  .bg-bee    {background:linear-gradient(145deg,#2d2800,#5a4f00,#3d3800)}
+  .bg-seal   {background:linear-gradient(145deg,#102030,#1a3550,#102840)}
+  .bg-frog   {background:linear-gradient(145deg,#0f2d15,#1a5025,#102d18)}
+  .bg-elephant{background:linear-gradient(145deg,#1f1f2d,#353548,#282835)}
+  .bg-hedgehog{background:linear-gradient(145deg,#2d1a20,#503040,#3a2030)}
+  @media(max-width:400px){.card-stage{max-width:290px}.btn-draw{padding:.8rem 1.8rem;min-width:190px}}
+  @media(min-width:600px){.card-stage{max-width:360px}}
 </style>
 </head>
 <body>
+<!-- velvet shimmer layer -->
+<div class="velvet-layer" aria-hidden="true">
+  <div class="vbeam"></div>
+  <div class="vbeam"></div>
+  <div class="vbeam"></div>
+  <div class="vbeam"></div>
+</div>
 
 <div class="app-container">
-
   <div class="header">
     <h1>Animal Oracle</h1>
     <span class="ornament">✦ ✧ ✦</span>
@@ -611,43 +157,27 @@
 
   <div class="card-stage" id="cardStage" onclick="handleDraw()" role="button" aria-label="Draw a card">
     <div class="card-inner" id="cardInner">
-
-      <!-- CARD BACK -->
       <div class="card-face card-back">
         <div class="card-back-inner">
           <span class="back-corner-tr">✦</span>
           <span class="back-corner-bl">✦</span>
           <div class="back-band top">✧ &nbsp; ✧ &nbsp; ✧</div>
-          <div class="back-ring">
-            <div class="back-moons"></div>
-            <div class="star-key">🗝️</div>
-          </div>
+          <div class="back-ring"><div class="star-key">🗝️</div></div>
           <div class="back-title">Animal Oracle</div>
-          <div class="back-dots">
-            <span></span><span></span><span></span>
-          </div>
+          <div class="back-dots"><span></span><span></span><span></span></div>
           <div class="back-band bottom">✧ &nbsp; ✧ &nbsp; ✧</div>
         </div>
       </div>
-
-      <!-- CARD FRONT (populated by JS) -->
       <div class="card-face card-front" id="cardFront">
         <div class="card-front-inner" id="cardFrontInner">
           <div class="card-illustration" id="cardIllustration">
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <div class="particle"></div>
-            <span class="front-corner tl">✦</span>
-            <span class="front-corner tr">✦</span>
-            <span class="front-corner bl">✧</span>
-            <span class="front-corner br">✧</span>
+            <div class="particle"></div><div class="particle"></div>
+            <div class="particle"></div><div class="particle"></div><div class="particle"></div>
+            <span class="front-corner tl">✦</span><span class="front-corner tr">✦</span>
+            <span class="front-corner bl">✧</span><span class="front-corner br">✧</span>
             <div class="card-number" id="cardNumber"></div>
             <div class="card-stars-top">✦ ✧ ✦</div>
-            <div class="animal-ring">
-              <div class="animal-emoji" id="animalEmoji"></div>
-            </div>
+            <div class="animal-svg" id="animalSvg"></div>
           </div>
           <div class="card-text-area">
             <div class="card-title-front" id="cardTitleFront"></div>
@@ -656,217 +186,625 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
   <div class="tap-hint" id="tapHint">👆 Tap the card or the button below</div>
-
   <div class="status-text hidden" id="statusText">Consulting the animal spirits...</div>
-
   <button class="btn-draw" id="drawBtn" onclick="handleDraw()">✦ Draw Your Daily Oracle ✦</button>
-
   <div class="ad-space">AD SPACE · 320×50</div>
-
 </div>
 
 <script>
-const CARDS = [
-  {
-    id: 1,
-    title: "The Stellar Owl",
-    emoji: "🦉",
-    bg: "bg-owl",
-    message: "Trust your intuition. Wisdom often speaks in whispers."
-  },
-  {
-    id: 2,
-    title: "The Fox of Secrets",
-    emoji: "🦊",
-    bg: "bg-fox",
-    message: "Curiosity opens doors others walk past. Follow the spark within you."
-  },
-  {
-    id: 3,
-    title: "The Bear of Stars",
-    emoji: "🐻",
-    bg: "bg-bear",
-    message: "Rest is sacred. Your deepest strength is renewed in stillness."
-  },
-  {
-    id: 4,
-    title: "The Butterfly Oracle",
-    emoji: "🦋",
-    bg: "bg-butterfly",
-    message: "Change is your birthright. The becoming is as beautiful as the arrival."
-  },
-  {
-    id: 5,
-    title: "The Moon Cat",
-    emoji: "🐈",
-    bg: "bg-cat",
-    message: "Walk softly through this day. Magic is drawn to those who listen."
-  },
-  {
-    id: 6,
-    title: "The Golden Deer",
-    emoji: "🦌",
-    bg: "bg-deer",
-    message: "You are exactly where you need to be. Move with grace, not urgency."
-  },
-  {
-    id: 7,
-    title: "The Dream Rabbit",
-    emoji: "🐰",
-    bg: "bg-rabbit",
-    message: "Your dreams are seeds. Plant them with belief and water them with patience."
-  },
-  {
-    id: 8,
-    title: "The Storm Raven",
-    emoji: "🐦",
-    bg: "bg-raven",
-    message: "After every storm, something new takes root. Hold on a little longer."
-  },
-  {
-    id: 9,
-    title: "The Ember Fox",
-    emoji: "🦊",
-    bg: "bg-ffox",
-    message: "Your cleverness is a rare gift. Use it with warmth and kindness."
-  },
-  {
-    id: 10,
-    title: "The Cosmic Turtle",
-    emoji: "🐢",
-    bg: "bg-turtle",
-    message: "Slow and steady reveals the deeper path. Patience is its own power."
-  },
-  {
-    id: 11,
-    title: "The Ember Phoenix",
-    emoji: "🦚",
-    bg: "bg-phoenix",
-    message: "You rise from what you thought would break you. This is how you were made."
-  },
-  {
-    id: 12,
-    title: "The Pearl Dolphin",
-    emoji: "🐬",
-    bg: "bg-dolphin",
-    message: "Joy is not a reward for hard work. It is your most natural state of being."
-  },
-  {
-    id: 13,
-    title: "The Velvet Mouse",
-    emoji: "🐭",
-    bg: "bg-mouse",
-    message: "Even the smallest steps move mountains over time. You are doing enough."
-  },
-  {
-    id: 14,
-    title: "The Silver Wolf",
-    emoji: "🐺",
-    bg: "bg-wolf",
-    message: "Trust your instincts and your people. Love and loyalty are your truest north."
-  },
-  {
-    id: 15,
-    title: "The Lantern Firefly",
-    emoji: "✨",
-    bg: "bg-firefly",
-    message: "Your light matters more than you will ever know. Keep shining, even softly."
-  },
-  {
-    id: 16,
-    title: "The Amber Bee",
-    emoji: "🐝",
-    bg: "bg-bee",
-    message: "Diligence and sweetness are not opposites. Both are yours to carry with pride."
-  },
-  {
-    id: 17,
-    title: "The Tide Seal",
-    emoji: "🦭",
-    bg: "bg-seal",
-    message: "Release what you cannot control to the waves. Then float, freely and fully."
-  },
-  {
-    id: 18,
-    title: "The Crystal Frog",
-    emoji: "🐸",
-    bg: "bg-frog",
-    message: "Transformation begins in the stillness between moments. You are already changing."
-  },
-  {
-    id: 19,
-    title: "The Sage Elephant",
-    emoji: "🐘",
-    bg: "bg-elephant",
-    message: "Memory and wisdom walk hand in hand. Honor all that you have carried."
-  },
-  {
-    id: 20,
-    title: "The Wish Hedgehog",
-    emoji: "🦔",
-    bg: "bg-hedgehog",
-    message: "Protect your softness — gentleness is one of the most powerful things you own."
-  }
-];
+// ─── SVG helpers ───────────────────────────────────────────────
+// Each SVG uses a unique gradient id prefix to avoid collisions.
+// Eyes are drawn consistently: white circle → iris → pupil → highlight.
 
-let isFlipped = false;
-let isAnimating = false;
-let currentCard = null;
-let lastCardId = null;
+function eye(cx,cy,r,iris){
+  const ir=r*.7,pr=r*.38,hr=r*.22;
+  return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="white"/>
+<circle cx="${cx}" cy="${cy}" r="${ir}" fill="${iris}"/>
+<circle cx="${cx}" cy="${cy}" r="${pr}" fill="#1a1035"/>
+<circle cx="${cx-r*.22}" cy="${cy-r*.22}" r="${hr}" fill="white"/>`;
+}
+
+function sparkles(pts,size,col,op){
+  return pts.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="${size}" fill="${col}" opacity="${op}"/>`).join('');
+}
+
+// ─── 20 Cards ──────────────────────────────────────────────────
+const CARDS = [
+
+// 1. Stellar Owl
+{id:1,title:"The Stellar Owl",bg:"bg-owl",message:"Trust your intuition. Wisdom often speaks in whispers.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g1" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#c4b4f8"/><stop offset="100%" stop-color="#6a5ab8"/></radialGradient></defs>
+<!-- ear tufts --><ellipse cx="76" cy="54" rx="11" ry="18" fill="#7a6bc4" transform="rotate(-18 76 54)"/><ellipse cx="124" cy="54" rx="11" ry="18" fill="#7a6bc4" transform="rotate(18 124 54)"/>
+<!-- body --><ellipse cx="100" cy="148" rx="36" ry="40" fill="#8070c8"/>
+<!-- head --><circle cx="100" cy="90" r="42" fill="url(#g1)"/>
+<!-- face disc --><ellipse cx="100" cy="93" rx="33" ry="29" fill="white" opacity=".1"/>
+<!-- glasses frames --><circle cx="82" cy="89" r="15" fill="white" opacity=".92"/>
+<circle cx="118" cy="89" r="15" fill="white" opacity=".92"/>
+<circle cx="82" cy="89" r="15" fill="none" stroke="#e8c96d" stroke-width="2.5"/>
+<circle cx="118" cy="89" r="15" fill="none" stroke="#e8c96d" stroke-width="2.5"/>
+<line x1="97" y1="89" x2="103" y2="89" stroke="#e8c96d" stroke-width="2.5"/>
+<!-- irises + pupils --><circle cx="82" cy="89" r="9" fill="#4a3aaa"/><circle cx="82" cy="89" r="5" fill="#1a1035"/><circle cx="79" cy="86" r="2.5" fill="white"/>
+<circle cx="118" cy="89" r="9" fill="#4a3aaa"/><circle cx="118" cy="89" r="5" fill="#1a1035"/><circle cx="115" cy="86" r="2.5" fill="white"/>
+<!-- beak --><polygon points="100,106 93,116 107,116" fill="#f0c84a"/>
+<!-- belly --><ellipse cx="100" cy="152" rx="20" ry="24" fill="white" opacity=".1"/>
+<!-- wings --><ellipse cx="65" cy="158" rx="17" ry="28" fill="#7060b8" transform="rotate(-8 65 158)"/>
+<ellipse cx="135" cy="158" rx="17" ry="28" fill="#7060b8" transform="rotate(8 135 158)"/>
+<!-- stars -->${sparkles([[38,62],[163,55],[40,162],[164,158],[170,38]],3,"#e8c96d",.75)}
+<polygon points="168,40 170,34 172,40 178,42 172,44 170,50 168,44 162,42" fill="#e8c96d" opacity=".9"/>
+</svg>`},
+
+// 2. Fox of Secrets
+{id:2,title:"The Fox of Secrets",bg:"bg-fox",message:"Curiosity opens doors others walk past. Follow the spark within you.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g2" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#f0a070"/><stop offset="100%" stop-color="#c05020"/></radialGradient></defs>
+<!-- ears --><polygon points="72,68 55,28 88,60" fill="#d04818"/><polygon points="128,68 145,28 112,60" fill="#d04818"/>
+<!-- ear inner --><polygon points="74,66 62,40 85,62" fill="#f8c0a0" opacity=".6"/>
+<polygon points="126,66 138,40 115,62" fill="#f8c0a0" opacity=".6"/>
+<!-- body --><ellipse cx="100" cy="150" rx="34" ry="38" fill="#d05828"/>
+<!-- head --><circle cx="100" cy="88" r="40" fill="url(#g2)"/>
+<!-- muzzle --><ellipse cx="100" cy="104" rx="20" ry="14" fill="#f8d4b8"/>
+<!-- eyes -->${eye(84,84,13,"#6b3010")}${eye(116,84,13,"#6b3010")}
+<!-- nose --><ellipse cx="100" cy="103" rx="5" ry="4" fill="#8b3018"/>
+<!-- mouth --><path d="M94,109 Q100,114 106,109" stroke="#8b3018" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+<!-- tail --><ellipse cx="148" cy="168" rx="22" ry="15" fill="#d05828" transform="rotate(-30 148 168)"/>
+<ellipse cx="158" cy="158" rx="14" ry="10" fill="white" opacity=".9" transform="rotate(-30 158 158)"/>
+<!-- whiskers --><line x1="65" y1="102" x2="88" y2="106" stroke="white" stroke-width="1.2" opacity=".7"/>
+<line x1="65" y1="108" x2="88" y2="108" stroke="white" stroke-width="1.2" opacity=".7"/>
+<line x1="112" y1="106" x2="135" y2="102" stroke="white" stroke-width="1.2" opacity=".7"/>
+<line x1="112" y1="108" x2="135" y2="108" stroke="white" stroke-width="1.2" opacity=".7"/>
+<!-- lantern --><rect x="148" y="88" width="14" height="18" rx="3" fill="#f0c84a" opacity=".9"/>
+<line x1="155" y1="80" x2="155" y2="88" stroke="#e8c96d" stroke-width="2"/>
+<circle cx="155" cy="97" r="5" fill="white" opacity=".6"/>
+${sparkles([[35,55],[165,50],[38,168],[30,130]],2.5,"#f0c84a",.7)}
+</svg>`},
+
+// 3. Bear of Stars
+{id:3,title:"The Bear of Stars",bg:"bg-bear",message:"Rest is sacred. Your deepest strength is renewed in stillness.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g3" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#90c890"/><stop offset="100%" stop-color="#2a7840"/></radialGradient></defs>
+<!-- ears --><circle cx="72" cy="60" r="18" fill="#2a7840"/><circle cx="128" cy="60" r="18" fill="#2a7840"/>
+<circle cx="72" cy="60" r="11" fill="#4a9860" opacity=".6"/>
+<circle cx="128" cy="60" r="11" fill="#4a9860" opacity=".6"/>
+<!-- body --><ellipse cx="100" cy="152" rx="40" ry="42" fill="#2a7840"/>
+<!-- head --><circle cx="100" cy="92" r="44" fill="url(#g3)"/>
+<!-- muzzle --><ellipse cx="100" cy="108" rx="22" ry="16" fill="#b8e8b8" opacity=".5"/>
+<!-- eyes (sleepy/content — half closed) --><ellipse cx="84" cy="88" rx="13" ry="9" fill="white" opacity=".95"/>
+<ellipse cx="116" cy="88" rx="13" ry="9" fill="white" opacity=".95"/>
+<ellipse cx="84" cy="90" rx="9" ry="6" fill="#1a4a28"/><ellipse cx="84" cy="90" rx="5" ry="3.5" fill="#0a1a10"/>
+<ellipse cx="116" cy="90" rx="9" ry="6" fill="#1a4a28"/><ellipse cx="116" cy="90" rx="5" ry="3.5" fill="#0a1a10"/>
+<circle cx="81" cy="88" r="2.5" fill="white"/><circle cx="113" cy="88" r="2.5" fill="white"/>
+<!-- sleepy lines above eyes --><path d="M75,80 Q84,76 93,80" stroke="#2a7840" stroke-width="2" fill="none" stroke-linecap="round"/>
+<path d="M107,80 Q116,76 125,80" stroke="#2a7840" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- nose --><ellipse cx="100" cy="108" rx="6" ry="5" fill="#1a4a28"/>
+<!-- star crown --><polygon points="100,38 103,46 111,46 105,51 107,59 100,55 93,59 95,51 89,46 97,46" fill="#e8c96d" opacity=".95"/>
+<polygon points="78,50 80,56 86,56 81,60 83,66 78,63 73,66 75,60 70,56 76,56" fill="#e8c96d" opacity=".8"/>
+<polygon points="122,50 124,56 130,56 125,60 127,66 122,63 117,66 119,60 114,56 120,56" fill="#e8c96d" opacity=".8"/>
+${sparkles([[38,80],[163,75],[42,170],[165,165]],2.5,"#90e890",.6)}
+</svg>`},
+
+// 4. Butterfly Oracle
+{id:4,title:"The Butterfly Oracle",bg:"bg-butterfly",message:"Change is your birthright. The becoming is as beautiful as the arrival.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<radialGradient id="g4a" cx="30%" cy="40%" r="70%"><stop offset="0%" stop-color="#e8a0f0"/><stop offset="100%" stop-color="#8030b0" stop-opacity=".8"/></radialGradient>
+<radialGradient id="g4b" cx="70%" cy="40%" r="70%"><stop offset="0%" stop-color="#a0d0f8"/><stop offset="100%" stop-color="#3060c0" stop-opacity=".8"/></radialGradient>
+</defs>
+<!-- upper wings --><ellipse cx="58" cy="82" rx="48" ry="62" fill="url(#g4a)" transform="rotate(-18 58 82)"/>
+<ellipse cx="142" cy="82" rx="48" ry="62" fill="url(#g4b)" transform="rotate(18 142 82)"/>
+<!-- wing patterns --><circle cx="58" cy="72" r="20" fill="white" opacity=".18"/>
+<circle cx="142" cy="72" r="20" fill="white" opacity=".18"/>
+<circle cx="52" cy="68" r="9" fill="white" opacity=".25"/>
+<circle cx="140" cy="68" r="9" fill="white" opacity=".25"/>
+<!-- lower wings --><ellipse cx="65" cy="138" rx="35" ry="45" fill="#c060d0" opacity=".75" transform="rotate(12 65 138)"/>
+<ellipse cx="135" cy="138" rx="35" ry="45" fill="#6090e0" opacity=".75" transform="rotate(-12 135 138)"/>
+<!-- body --><ellipse cx="100" cy="108" rx="9" ry="52" fill="#7030a0"/>
+<!-- head --><circle cx="100" cy="72" r="24" fill="#c078e0"/>
+<!-- eyes -->${eye(92,70,8,"#7030a0")}${eye(108,70,8,"#7030a0")}
+<!-- antennae --><path d="M93,50 Q80,30 72,22" stroke="#c078e0" stroke-width="2" fill="none"/>
+<path d="M107,50 Q120,30 128,22" stroke="#c078e0" stroke-width="2" fill="none"/>
+<circle cx="72" cy="22" r="5" fill="#f8d0ff"/>
+<circle cx="128" cy="22" r="5" fill="#d0e8ff"/>
+<!-- smile --><path d="M93,79 Q100,85 107,79" stroke="#7030a0" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+${sparkles([[30,30],[170,28],[25,150],[175,145],[100,175]],2.5,"#f8d0ff",.8)}
+</svg>`},
+
+// 5. Moon Cat
+{id:5,title:"The Moon Cat",bg:"bg-cat",message:"Walk softly through this day. Magic is drawn to those who listen.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g5" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#9090e8"/><stop offset="100%" stop-color="#2828a0"/></radialGradient></defs>
+<!-- ears --><polygon points="72,62 58,28 90,58" fill="#3838c0"/><polygon points="128,62 142,28 110,58" fill="#3838c0"/>
+<polygon points="74,60 64,38 88,58" fill="#c8c8ff" opacity=".4"/>
+<polygon points="126,60 136,38 112,58" fill="#c8c8ff" opacity=".4"/>
+<!-- body --><ellipse cx="100" cy="152" rx="38" ry="42" fill="#3838c0"/>
+<!-- head --><circle cx="100" cy="90" r="42" fill="url(#g5)"/>
+<!-- muzzle --><ellipse cx="100" cy="106" rx="20" ry="13" fill="#c8c8ff" opacity=".25"/>
+<!-- eyes (moon-shaped, slightly almond) --><ellipse cx="82" cy="88" rx="14" ry="11" fill="white" opacity=".95"/>
+<ellipse cx="118" cy="88" rx="14" ry="11" fill="white" opacity=".95"/>
+<!-- crescent moon pupils --><circle cx="82" cy="88" r="9" fill="#1a1a6a"/>
+<circle cx="86" cy="86" r="6" fill="#9090e8"/>
+<circle cx="80" cy="86" r="2.5" fill="white"/>
+<circle cx="118" cy="88" r="9" fill="#1a1a6a"/>
+<circle cx="122" cy="86" r="6" fill="#9090e8"/>
+<circle cx="116" cy="86" r="2.5" fill="white"/>
+<!-- nose --><polygon points="100,104 96,109 104,109" fill="#c060b0"/>
+<!-- mouth --><path d="M94,111 Q100,116 106,111" stroke="#c060b0" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+<!-- whiskers --><line x1="62" y1="104" x2="86" y2="107" stroke="white" stroke-width="1.2" opacity=".6"/>
+<line x1="62" y1="110" x2="86" y2="109" stroke="white" stroke-width="1.2" opacity=".6"/>
+<line x1="114" y1="107" x2="138" y2="104" stroke="white" stroke-width="1.2" opacity=".6"/>
+<line x1="114" y1="109" x2="138" y2="110" stroke="white" stroke-width="1.2" opacity=".6"/>
+<!-- crescent moon collar --><path d="M68,128 Q100,148 132,128" stroke="#e8c96d" stroke-width="3.5" fill="none"/>
+<path d="M76,134 Q100,142 124,134" stroke="#e8c96d" stroke-width="1.5" fill="none" opacity=".5"/>
+<!-- moon on collar --><path d="M108,130 a8,8 0 1 1 0,12 a5,5 0 1 0 0,-12" fill="#e8c96d"/>
+<!-- tail --><path d="M136,185 Q170,165 162,140 Q158,128 145,135" stroke="#3838c0" stroke-width="14" fill="none" stroke-linecap="round"/>
+${sparkles([[35,58],[166,52],[38,172],[165,165]],2.5,"#c8c8ff",.65)}
+</svg>`},
+
+// 6. Golden Deer
+{id:6,title:"The Golden Deer",bg:"bg-deer",message:"You are exactly where you need to be. Move with grace, not urgency.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g6" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#f0d080"/><stop offset="100%" stop-color="#c08020"/></radialGradient></defs>
+<!-- antlers --><path d="M82,55 Q70,30 55,20 M70,35 Q60,28 50,32 M55,20 Q48,12 42,18" stroke="#c08020" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M118,55 Q130,30 145,20 M130,35 Q140,28 150,32 M145,20 Q152,12 158,18" stroke="#c08020" stroke-width="4" fill="none" stroke-linecap="round"/>
+<!-- flower on antlers --><circle cx="55" cy="20" r="7" fill="#f08080" opacity=".9"/>
+<circle cx="145" cy="20" r="7" fill="#f0c080" opacity=".9"/>
+<circle cx="42" cy="18" r="5" fill="#a0d080" opacity=".9"/>
+<circle cx="158" cy="18" r="5" fill="#80c0f0" opacity=".9"/>
+<!-- body --><ellipse cx="100" cy="155" rx="34" ry="38" fill="#c88020"/>
+<!-- neck --><rect x="88" y="118" width="24" height="30" rx="12" fill="#d09030"/>
+<!-- head --><circle cx="100" cy="90" r="38" fill="url(#g6)"/>
+<!-- golden spots on body --><circle cx="88" cy="155" r="5" fill="#f0d060" opacity=".5"/>
+<circle cx="110" cy="160" r="4" fill="#f0d060" opacity=".5"/>
+<circle cx="100" cy="148" r="3" fill="#f0d060" opacity=".5"/>
+<!-- eyes -->${eye(84,86,13,"#6b4010")}${eye(116,86,13,"#6b4010")}
+<!-- long lashes --><line x1="76" y1="77" x2="74" y2="71" stroke="#8b5020" stroke-width="1.5"/><line x1="80" y1="75" x2="79" y2="69" stroke="#8b5020" stroke-width="1.5"/><line x1="84" y1="74" x2="84" y2="68" stroke="#8b5020" stroke-width="1.5"/>
+<line x1="108" y1="75" x2="107" y2="69" stroke="#8b5020" stroke-width="1.5"/><line x1="112" y1="74" x2="112" y2="68" stroke="#8b5020" stroke-width="1.5"/><line x1="116" y1="75" x2="118" y2="69" stroke="#8b5020" stroke-width="1.5"/>
+<!-- nose --><ellipse cx="100" cy="102" rx="6" ry="5" fill="#c05030"/>
+<!-- mouth --><path d="M93,108 Q100,113 107,108" stroke="#c05030" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+${sparkles([[35,70],[165,65],[38,175],[165,172]],2.5,"#f0d060",.7)}
+</svg>`},
+
+// 7. Dream Rabbit
+{id:7,title:"The Dream Rabbit",bg:"bg-rabbit",message:"Your dreams are seeds. Plant them with belief and water them with patience.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g7" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#f8d0f0"/><stop offset="100%" stop-color="#c050a0"/></radialGradient></defs>
+<!-- long ears --><ellipse cx="78" cy="40" rx="16" ry="42" fill="#e080c0"/>
+<ellipse cx="122" cy="40" rx="16" ry="42" fill="#e080c0"/>
+<ellipse cx="78" cy="40" rx="9" ry="34" fill="#f8b0d8" opacity=".7"/>
+<ellipse cx="122" cy="40" rx="9" ry="34" fill="#f8b0d8" opacity=".7"/>
+<!-- stars on ear tips --><polygon points="78,8 80,14 86,14 81,18 83,24 78,20 73,24 75,18 70,14 76,14" fill="#e8c96d" opacity=".9"/>
+<polygon points="122,8 124,14 130,14 125,18 127,24 122,20 117,24 119,18 114,14 120,14" fill="#e8c96d" opacity=".85"/>
+<!-- body --><ellipse cx="100" cy="152" rx="38" ry="40" fill="#d060a8"/>
+<!-- head --><circle cx="100" cy="94" r="42" fill="url(#g7)"/>
+<!-- cheek puffs --><circle cx="74" cy="106" r="14" fill="#f8a0d0" opacity=".4"/>
+<circle cx="126" cy="106" r="14" fill="#f8a0d0" opacity=".4"/>
+<!-- muzzle --><ellipse cx="100" cy="110" rx="18" ry="12" fill="white" opacity=".4"/>
+<!-- eyes (dreamy, half-closed) --><ellipse cx="84" cy="92" rx="13" ry="10" fill="white" opacity=".95"/>
+<ellipse cx="116" cy="92" rx="13" ry="10" fill="white" opacity=".95"/>
+<ellipse cx="84" cy="94" rx="10" ry="7" fill="#8030a0"/><ellipse cx="84" cy="95" rx="6" ry="4.5" fill="#1a1035"/>
+<circle cx="81" cy="91" r="2.5" fill="white"/>
+<ellipse cx="116" cy="94" rx="10" ry="7" fill="#8030a0"/><ellipse cx="116" cy="95" rx="6" ry="4.5" fill="#1a1035"/>
+<circle cx="113" cy="91" r="2.5" fill="white"/>
+<!-- nose --><ellipse cx="100" cy="110" rx="5" ry="4" fill="#e060a0"/>
+<!-- cloud-like tail --><circle cx="100" cy="188" r="12" fill="white" opacity=".8"/>
+<circle cx="91" cy="186" r="9" fill="white" opacity=".8"/>
+<circle cx="109" cy="186" r="9" fill="white" opacity=".8"/>
+${sparkles([[35,68],[165,62],[38,170],[165,168],[100,172]],2.5,"#f8d0f8",.75)}
+</svg>`},
+
+// 8. Storm Raven
+{id:8,title:"The Storm Raven",bg:"bg-raven",message:"After every storm, something new takes root. Hold on a little longer.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g8" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#5050a0"/><stop offset="100%" stop-color="#101030"/></radialGradient></defs>
+<!-- spread wings --><ellipse cx="42" cy="100" rx="38" ry="22" fill="#181838" transform="rotate(-20 42 100)"/>
+<ellipse cx="158" cy="100" rx="38" ry="22" fill="#181838" transform="rotate(20 158 100)"/>
+<!-- wing shine --><ellipse cx="42" cy="96" rx="26" ry="12" fill="#3838a0" opacity=".3" transform="rotate(-20 42 96)"/>
+<ellipse cx="158" cy="96" rx="26" ry="12" fill="#3838a0" opacity=".3" transform="rotate(20 158 96)"/>
+<!-- body --><ellipse cx="100" cy="138" rx="30" ry="45" fill="#1a1a45"/>
+<!-- head --><circle cx="100" cy="85" r="36" fill="url(#g8)"/>
+<!-- iridescent sheen --><ellipse cx="88" cy="75" rx="22" ry="16" fill="#5060d0" opacity=".2" transform="rotate(-15 88 75)"/>
+<!-- eye -->${eye(86,83,12,"#3a40a8")}${eye(114,83,12,"#3a40a8")}
+<!-- beak --><path d="M100,102 L90,112 L100,108 L110,112 Z" fill="#e8c96d"/>
+<!-- lightning bolt chest --><polygon points="104,118 96,136 103,136 97,155 110,132 103,132 110,118" fill="#e8c96d" opacity=".9"/>
+<!-- tail feathers --><path d="M85,178 L100,158 L115,178" stroke="#2828a0" stroke-width="8" fill="none" stroke-linecap="round"/>
+<path d="M74,182 L100,158 L126,182" stroke="#1a1a45" stroke-width="5" fill="none" stroke-linecap="round"/>
+${sparkles([[30,48],[170,42],[32,168],[168,165]],2,"#8090e0",.6)}
+<!-- lightning sparkles --><polygon points="38,80 40,74 42,80 48,82 42,84 40,90 38,84 32,82" fill="#e8c96d" opacity=".7"/>
+<polygon points="162,75 164,70 166,75 171,77 166,79 164,84 162,79 157,77" fill="#e8c96d" opacity=".6"/>
+</svg>`},
+
+// 9. Ember Fox
+{id:9,title:"The Ember Fox",bg:"bg-ffox",message:"Your cleverness is a rare gift. Use it with warmth and kindness.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g9" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#f08840"/><stop offset="100%" stop-color="#a83010"/></radialGradient></defs>
+<!-- ears --><polygon points="72,65 52,22 90,58" fill="#c04020"/><polygon points="128,65 148,22 110,58" fill="#c04020"/>
+<polygon points="74,63 60,34 88,60" fill="#f8c090" opacity=".5"/>
+<polygon points="126,63 140,34 112,60" fill="#f8c090" opacity=".5"/>
+<!-- flame tips on ears --><ellipse cx="52" cy="22" rx="8" ry="12" fill="#f8c050" transform="rotate(-10 52 22)" opacity=".9"/>
+<ellipse cx="148" cy="22" rx="8" ry="12" fill="#f8c050" transform="rotate(10 148 22)" opacity=".9"/>
+<!-- body --><ellipse cx="100" cy="152" rx="35" ry="40" fill="#c04020"/>
+<!-- head --><circle cx="100" cy="90" r="42" fill="url(#g9)"/>
+<!-- muzzle --><ellipse cx="100" cy="108" rx="22" ry="15" fill="#f8c090" opacity=".6"/>
+<!-- eyes -->${eye(83,86,13,"#703010")}${eye(117,86,13,"#703010")}
+<!-- nose --><ellipse cx="100" cy="107" rx="5.5" ry="4.5" fill="#8b2010"/>
+<!-- mouth --><path d="M93,113 Q100,119 107,113" stroke="#8b2010" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+<!-- whiskers --><line x1="62" y1="106" x2="85" y2="109" stroke="white" stroke-width="1.2" opacity=".6"/>
+<line x1="62" y1="112" x2="85" y2="111" stroke="white" stroke-width="1.2" opacity=".6"/>
+<line x1="115" y1="109" x2="138" y2="106" stroke="white" stroke-width="1.2" opacity=".6"/>
+<line x1="115" y1="111" x2="138" y2="112" stroke="white" stroke-width="1.2" opacity=".6"/>
+<!-- flame tail --><path d="M132,180 Q165,155 158,128 Q152,108 138,118 Q148,105 138,95 Q128,108 134,125 Q118,108 124,140 Q110,120 116,158 Q118,175 132,180" fill="#f88030" opacity=".9"/>
+<path d="M134,178 Q155,158 150,135 Q142,118 138,125 Q144,112 136,105 Q128,115 133,132 Q120,115 126,148" fill="#f8c050" opacity=".6"/>
+${sparkles([[35,60],[165,55],[40,175]],2.5,"#f8c050",.75)}
+</svg>`},
+
+// 10. Cosmic Turtle
+{id:10,title:"The Cosmic Turtle",bg:"bg-turtle",message:"Slow and steady reveals the deeper path. Patience is its own power.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g10" cx="50%" cy="40%" r="65%"><stop offset="0%" stop-color="#80e8d0"/><stop offset="100%" stop-color="#108060"/></radialGradient></defs>
+<!-- shell --><ellipse cx="100" cy="118" rx="64" ry="58" fill="#186848"/>
+<!-- shell highlight --><ellipse cx="90" cy="100" rx="40" ry="35" fill="#20a870" opacity=".35"/>
+<!-- shell hexagon pattern --><path d="M100,70 L116,79 L116,97 L100,106 L84,97 L84,79 Z" fill="none" stroke="#0a4030" stroke-width="2.5"/>
+<path d="M72,88 L88,79 L88,97 L72,106 L56,97 L56,79 Z" fill="none" stroke="#0a4030" stroke-width="2" opacity=".6"/>
+<path d="M128,88 L144,79 L144,97 L128,106 L112,97 L112,79 Z" fill="none" stroke="#0a4030" stroke-width="2" opacity=".6"/>
+<!-- stars on shell --><circle cx="100" cy="88" r="3" fill="#e8c96d" opacity=".9"/>
+<circle cx="100" cy="88" r="1.5" fill="white"/>
+<circle cx="80" cy="93" r="2" fill="#e8c96d" opacity=".7"/>
+<circle cx="120" cy="93" r="2" fill="#e8c96d" opacity=".7"/>
+<circle cx="100" cy="100" r="1.5" fill="#e8c96d" opacity=".6"/>
+<!-- head --><circle cx="100" cy="60" r="26" fill="url(#g10)"/>
+<!-- eyes -->${eye(90,57,9,"#0a6040")}${eye(110,57,9,"#0a6040")}
+<!-- mouth (wise smile) --><path d="M90,68 Q100,74 110,68" stroke="#0a6040" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- legs --><ellipse cx="44" cy="135" rx="20" ry="12" fill="#186848" transform="rotate(20 44 135)"/>
+<ellipse cx="156" cy="135" rx="20" ry="12" fill="#186848" transform="rotate(-20 156 135)"/>
+<ellipse cx="60" cy="168" rx="18" ry="12" fill="#186848" transform="rotate(-10 60 168)"/>
+<ellipse cx="140" cy="168" rx="18" ry="12" fill="#186848" transform="rotate(10 140 168)"/>
+<!-- tail --><ellipse cx="100" cy="178" rx="8" ry="12" fill="#186848"/>
+${sparkles([[30,45],[170,40],[35,178],[166,172]],2,"#80e8d0",.65)}
+</svg>`},
+
+// 11. Ember Phoenix
+{id:11,title:"The Ember Phoenix",bg:"bg-phoenix",message:"You rise from what you thought would break you. This is how you were made.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g11" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#f09060"/><stop offset="100%" stop-color="#c01818"/></radialGradient></defs>
+<!-- tail feathers fan --><ellipse cx="68" cy="165" rx="12" ry="48" fill="#f06020" opacity=".85" transform="rotate(-35 68 165)"/>
+<ellipse cx="84" cy="172" rx="10" ry="48" fill="#f09020" opacity=".85" transform="rotate(-18 84 172)"/>
+<ellipse cx="100" cy="175" rx="10" ry="50" fill="#f0c020" opacity=".85"/>
+<ellipse cx="116" cy="172" rx="10" ry="48" fill="#f09020" opacity=".85" transform="rotate(18 116 172)"/>
+<ellipse cx="132" cy="165" rx="12" ry="48" fill="#f06020" opacity=".85" transform="rotate(35 132 165)"/>
+<!-- eye spots on feathers --><circle cx="68" cy="135" r="6" fill="#e8c96d" opacity=".8"/><circle cx="68" cy="135" r="3" fill="#c01818"/>
+<circle cx="84" cy="138" r="6" fill="#e8c96d" opacity=".8"/><circle cx="84" cy="138" r="3" fill="#8020a0"/>
+<circle cx="100" cy="140" r="7" fill="#e8c96d" opacity=".8"/><circle cx="100" cy="140" r="3.5" fill="#0040c0"/>
+<circle cx="116" cy="138" r="6" fill="#e8c96d" opacity=".8"/><circle cx="116" cy="138" r="3" fill="#008040"/>
+<circle cx="132" cy="135" r="6" fill="#e8c96d" opacity=".8"/><circle cx="132" cy="135" r="3" fill="#c01818"/>
+<!-- wings --><ellipse cx="55" cy="90" rx="42" ry="22" fill="#c82020" transform="rotate(-25 55 90)"/>
+<ellipse cx="145" cy="90" rx="42" ry="22" fill="#c82020" transform="rotate(25 145 90)"/>
+<ellipse cx="50" cy="85" rx="28" ry="14" fill="#f06030" opacity=".5" transform="rotate(-25 50 85)"/>
+<ellipse cx="150" cy="85" rx="28" ry="14" fill="#f06030" opacity=".5" transform="rotate(25 150 85)"/>
+<!-- body --><ellipse cx="100" cy="112" rx="22" ry="28" fill="#d02020"/>
+<!-- head --><circle cx="100" cy="72" r="28" fill="url(#g11)"/>
+<!-- crest feathers --><ellipse cx="90" cy="48" rx="6" ry="18" fill="#f06020" transform="rotate(-15 90 48)"/>
+<ellipse cx="100" cy="44" rx="6" ry="20" fill="#f0a020"/>
+<ellipse cx="110" cy="48" rx="6" ry="18" fill="#f06020" transform="rotate(15 110 48)"/>
+<!-- eyes -->${eye(90,70,10,"#801010")}${eye(110,70,10,"#801010")}
+<!-- beak --><polygon points="100,84 92,93 108,93" fill="#e8c96d"/>
+${sparkles([[30,40],[170,35],[32,185],[168,182]],2.5,"#f8d060",.8)}
+</svg>`},
+
+// 12. Pearl Dolphin
+{id:12,title:"The Pearl Dolphin",bg:"bg-dolphin",message:"Joy is not a reward for hard work. It is your most natural state of being.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g12" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#90d0f8"/><stop offset="100%" stop-color="#1850c0"/></radialGradient></defs>
+<!-- arc body --><path d="M30,155 Q50,60 120,42 Q160,32 175,65 Q185,90 165,115 Q145,138 110,142 Q80,146 55,165 Z" fill="url(#g12)"/>
+<!-- belly --><path d="M55,155 Q75,100 120,80 Q150,68 165,85 Q175,100 160,118 Q142,136 112,140 Q82,143 60,160 Z" fill="white" opacity=".3"/>
+<!-- dorsal fin --><path d="M130,58 Q150,30 160,45 Q155,60 140,68 Z" fill="#2060d8" opacity=".8"/>
+<!-- tail fluke --><path d="M30,155 Q18,145 22,132 Q30,120 42,130 Q35,148 55,155 Z" fill="#2060d8"/>
+<path d="M30,155 Q20,165 28,175 Q38,182 48,170 Q38,160 55,155 Z" fill="#2060d8"/>
+<!-- eye --><circle cx="140" cy="72" r="10" fill="white" opacity=".95"/>
+<circle cx="140" cy="72" r="7" fill="#1040a0"/>
+<circle cx="140" cy="72" r="4" fill="#060c28"/>
+<circle cx="138" cy="70" r="2.5" fill="white"/>
+<!-- smile --><path d="M150,80 Q158,90 154,98" stroke="#1040a0" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- pearl necklace --><circle cx="118" cy="86" r="4" fill="white" opacity=".95"/>
+<circle cx="128" cy="80" r="4" fill="white" opacity=".9"/>
+<circle cx="138" cy="78" r="4" fill="#f0e8ff" opacity=".9"/>
+<circle cx="148" cy="80" r="4" fill="white" opacity=".9"/>
+<circle cx="108" cy="95" r="3.5" fill="white" opacity=".85"/>
+<!-- water splash --><path d="M60,148 Q55,130 65,125" stroke="#90d8ff" stroke-width="3" fill="none" stroke-linecap="round"/>
+<path d="M48,140 Q42,122 54,118" stroke="#90d8ff" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+${sparkles([[38,35],[175,145],[165,35],[32,90]],2.5,"#90e0ff",.65)}
+</svg>`},
+
+// 13. Velvet Mouse
+{id:13,title:"The Velvet Mouse",bg:"bg-mouse",message:"Even the smallest steps move mountains over time. You are doing enough.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g13" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#d8b0e8"/><stop offset="100%" stop-color="#8040b0"/></radialGradient></defs>
+<!-- big round ears --><circle cx="68" cy="62" r="30" fill="#c080d0"/>
+<circle cx="132" cy="62" r="30" fill="#c080d0"/>
+<circle cx="68" cy="62" r="20" fill="#f0c0f8" opacity=".6"/>
+<circle cx="132" cy="62" r="20" fill="#f0c0f8" opacity=".6"/>
+<!-- body --><ellipse cx="100" cy="155" rx="36" ry="38" fill="#9050b8"/>
+<!-- head --><circle cx="100" cy="96" r="40" fill="url(#g13)"/>
+<!-- muzzle --><ellipse cx="100" cy="112" rx="20" ry="14" fill="#f0d0f8" opacity=".4"/>
+<!-- GIANT bow on top --><path d="M72,54 Q84,42 100,50 Q84,60 72,54 Z" fill="#f06090"/>
+<path d="M128,54 Q116,42 100,50 Q116,60 128,54 Z" fill="#f06090"/>
+<circle cx="100" cy="50" r="7" fill="#e83070"/>
+<!-- eyes -->${eye(84,94,13,"#6030a0")}${eye(116,94,13,"#6030a0")}
+<!-- nose --><ellipse cx="100" cy="113" rx="5" ry="4" fill="#d060b0"/>
+<!-- cheek blush --><ellipse cx="74" cy="108" r="10" fill="#f090d0" opacity=".35"/>
+<ellipse cx="126" cy="108" r="10" fill="#f090d0" opacity=".35"/>
+<!-- holding a star --><path d="M138,140 L145,120 L152,140 L170,130 L158,148 L168,168 L148,158 L138,178 L128,158 L108,168 L118,148 L106,130 Z" fill="#e8c96d" opacity=".9"/>
+<circle cx="138" cy="148" r="6" fill="white" opacity=".6"/>
+<!-- tail --><path d="M136,188 Q180,175 175,148" stroke="#c080d0" stroke-width="4" fill="none" stroke-linecap="round"/>
+${sparkles([[35,90],[165,85],[38,178],[30,148]],2,"#f0d0f8",.7)}
+</svg>`},
+
+// 14. Silver Wolf
+{id:14,title:"The Silver Wolf",bg:"bg-wolf",message:"Trust your instincts and your people. Love and loyalty are your truest north.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g14" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#b0c0e8"/><stop offset="100%" stop-color="#303878"/></radialGradient></defs>
+<!-- ears --><polygon points="74,62 58,22 92,56" fill="#404888"/><polygon points="126,62 142,22 108,56" fill="#404888"/>
+<polygon points="76,60 64,32 90,57" fill="#a0b0d8" opacity=".5"/>
+<polygon points="124,60 136,32 110,57" fill="#a0b0d8" opacity=".5"/>
+<!-- mane / fur ruff --><ellipse cx="100" cy="132" rx="50" ry="30" fill="#505898" opacity=".6"/>
+<ellipse cx="72" cy="126" rx="22" ry="18" fill="#6068a8" opacity=".5"/>
+<ellipse cx="128" cy="126" rx="22" ry="18" fill="#6068a8" opacity=".5"/>
+<!-- body --><ellipse cx="100" cy="155" rx="36" ry="40" fill="#404888"/>
+<!-- head --><circle cx="100" cy="88" r="44" fill="url(#g14)"/>
+<!-- muzzle --><ellipse cx="100" cy="108" rx="24" ry="17" fill="#c8d0f0" opacity=".35"/>
+<!-- moon marking on forehead --><path d="M106,62 a14,14 0 1 1 0,20 a8,8 0 1 0 0,-20" fill="#e8c96d" opacity=".9"/>
+<!-- eyes -->${eye(82,88,14,"#283070")}${eye(118,88,14,"#283070")}
+<!-- nose --><ellipse cx="100" cy="109" rx="7" ry="5.5" fill="#202860"/>
+<!-- mouth --><path d="M91,116 Q100,122 109,116" stroke="#202860" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- whisker dots --><circle cx="80" cy="111" r="2.5" fill="#505898" opacity=".6"/>
+<circle cx="84" cy="116" r="2.5" fill="#505898" opacity=".6"/>
+<circle cx="116" cy="111" r="2.5" fill="#505898" opacity=".6"/>
+<circle cx="120" cy="116" r="2.5" fill="#505898" opacity=".6"/>
+${sparkles([[34,60],[166,55],[36,172],[165,168]],2.5,"#c0d0ff",.65)}
+</svg>`},
+
+// 15. Lantern Firefly
+{id:15,title:"The Lantern Firefly",bg:"bg-firefly",message:"Your light matters more than you will ever know. Keep shining, even softly.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<radialGradient id="g15" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#c0e880"/><stop offset="100%" stop-color="#286010"/></radialGradient>
+<radialGradient id="glow15" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f8ff80" stop-opacity="1"/><stop offset="100%" stop-color="#80ff40" stop-opacity="0"/></radialGradient>
+</defs>
+<!-- wings (4) --><ellipse cx="64" cy="80" rx="38" ry="18" fill="#d0f8a0" opacity=".55" transform="rotate(-30 64 80)"/>
+<ellipse cx="136" cy="80" rx="38" ry="18" fill="#d0f8a0" opacity=".55" transform="rotate(30 136 80)"/>
+<ellipse cx="68" cy="108" rx="34" ry="14" fill="#c0f090" opacity=".45" transform="rotate(-20 68 108)"/>
+<ellipse cx="132" cy="108" rx="34" ry="14" fill="#c0f090" opacity=".45" transform="rotate(20 132 108)"/>
+<!-- wing veins --><path d="M64,68 Q78,80 90,98" stroke="#80c040" stroke-width="1" fill="none" opacity=".4"/>
+<path d="M136,68 Q122,80 110,98" stroke="#80c040" stroke-width="1" fill="none" opacity=".4"/>
+<!-- body --><ellipse cx="100" cy="108" rx="14" ry="38" fill="url(#g15)"/>
+<!-- body segments --><line x1="86" y1="100" x2="114" y2="100" stroke="#1a5010" stroke-width="1.5" opacity=".4"/>
+<line x1="86" y1="112" x2="114" y2="112" stroke="#1a5010" stroke-width="1.5" opacity=".4"/>
+<line x1="86" y1="124" x2="114" y2="124" stroke="#1a5010" stroke-width="1.5" opacity=".4"/>
+<!-- head --><circle cx="100" cy="72" r="26" fill="#3a8020"/>
+<!-- eyes -->${eye(90,70,9,"#1a5010")}${eye(110,70,9,"#1a5010")}
+<!-- antennae --><path d="M93,47 Q82,28 76,18" stroke="#3a8020" stroke-width="2.2" fill="none"/>
+<path d="M107,47 Q118,28 124,18" stroke="#3a8020" stroke-width="2.2" fill="none"/>
+<circle cx="76" cy="18" r="5" fill="#f8ff80"/>
+<circle cx="124" cy="18" r="5" fill="#f8ff80"/>
+<!-- GLOWING lantern abdomen --><circle cx="100" cy="152" r="22" fill="url(#glow15)" opacity=".8"/>
+<circle cx="100" cy="152" r="16" fill="#f8ff60" opacity=".9"/>
+<circle cx="100" cy="152" r="10" fill="white" opacity=".9"/>
+<!-- glow rays --><circle cx="100" cy="152" r="28" fill="#f8ff80" opacity=".2"/>
+<circle cx="100" cy="152" r="36" fill="#80ff40" opacity=".1"/>
+${sparkles([[30,45],[170,40],[32,170],[168,165],[155,105],[45,105]],2.5,"#d0ff80",.7)}
+</svg>`},
+
+// 16. Amber Bee
+{id:16,title:"The Amber Bee",bg:"bg-bee",message:"Diligence and sweetness are not opposites. Both are yours to carry with pride.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g16" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#f8e060"/><stop offset="100%" stop-color="#c08010"/></radialGradient></defs>
+<!-- wings --><ellipse cx="62" cy="78" rx="40" ry="20" fill="#f0f8ff" opacity=".7" transform="rotate(-20 62 78)"/>
+<ellipse cx="138" cy="78" rx="40" ry="20" fill="#f0f8ff" opacity=".7" transform="rotate(20 138 78)"/>
+<ellipse cx="66" cy="105" rx="32" ry="16" fill="#f0f8ff" opacity=".55" transform="rotate(-10 66 105)"/>
+<ellipse cx="134" cy="105" rx="32" ry="16" fill="#f0f8ff" opacity=".55" transform="rotate(10 134 105)"/>
+<!-- chubby round body --><ellipse cx="100" cy="140" rx="38" ry="45" fill="#f0c020"/>
+<!-- stripes --><rect x="62" y="122" width="76" height="12" rx="4" fill="#1a1000" opacity=".7"/>
+<rect x="62" y="142" width="76" height="12" rx="4" fill="#1a1000" opacity=".7"/>
+<rect x="62" y="162" width="76" height="10" rx="4" fill="#1a1000" opacity=".65"/>
+<!-- head --><circle cx="100" cy="82" r="34" fill="url(#g16)"/>
+<!-- tiny crown --><rect x="84" y="48" width="32" height="10" rx="3" fill="#e8c96d"/>
+<polygon points="84,48 88,36 92,48" fill="#e8c96d"/><polygon points="96,48 100,34 104,48" fill="#f8e070"/>
+<polygon points="108,48 112,36 116,48" fill="#e8c96d"/>
+<circle cx="88" cy="37" r="3" fill="#f06090"/><circle cx="100" cy="34" r="3" fill="#f0a0a0"/><circle cx="112" cy="37" r="3" fill="#90c0f0"/>
+<!-- eyes -->${eye(88,84,11,"#8b5a00")}${eye(112,84,11,"#8b5a00")}
+<!-- cute smile --><path d="M89,98 Q100,106 111,98" stroke="#8b5a00" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- antennae --><path d="M92,49 Q80,28 72,18" stroke="#c08010" stroke-width="2.5" fill="none"/>
+<path d="M108,49 Q120,28 128,18" stroke="#c08010" stroke-width="2.5" fill="none"/>
+<circle cx="72" cy="18" r="6" fill="#f8e060"/>
+<circle cx="128" cy="18" r="6" fill="#f8e060"/>
+<!-- honey drop --><path d="M115,175 Q118,188 115,195 Q108,200 105,195 Q102,188 106,175 Z" fill="#f0a000" opacity=".85"/>
+${sparkles([[30,50],[170,45],[35,178],[168,175]],2.5,"#f8e060",.75)}
+</svg>`},
+
+// 17. Tide Seal
+{id:17,title:"The Tide Seal",bg:"bg-seal",message:"Release what you cannot control to the waves. Then float, freely and fully.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g17" cx="40%" cy="35%" r="70%"><stop offset="0%" stop-color="#80c8e8"/><stop offset="100%" stop-color="#104878"/></radialGradient></defs>
+<!-- chubby body --><ellipse cx="100" cy="148" rx="52" ry="42" fill="#186090"/>
+<!-- belly --><ellipse cx="100" cy="155" rx="35" ry="28" fill="#c0e8f8" opacity=".3"/>
+<!-- flippers --><ellipse cx="42" cy="162" rx="28" ry="12" fill="#105878" transform="rotate(25 42 162)"/>
+<ellipse cx="158" cy="162" rx="28" ry="12" fill="#105878" transform="rotate(-25 158 162)"/>
+<!-- tail --><ellipse cx="100" cy="188" rx="18" ry="10" fill="#105878"/>
+<ellipse cx="82" cy="192" rx="12" ry="7" fill="#186090" transform="rotate(-20 82 192)"/>
+<ellipse cx="118" cy="192" rx="12" ry="7" fill="#186090" transform="rotate(20 118 192)"/>
+<!-- head --><circle cx="100" cy="88" r="42" fill="url(#g17)"/>
+<!-- muzzle --><ellipse cx="100" cy="107" rx="22" ry="16" fill="#a0d8f0" opacity=".3"/>
+<!-- eyes -->${eye(82,85,14,"#0a3860")}${eye(118,85,14,"#0a3860")}
+<!-- whiskers --><line x1="60" y1="105" x2="82" y2="109" stroke="white" stroke-width="1.5" opacity=".65"/>
+<line x1="60" y1="111" x2="82" y2="111" stroke="white" stroke-width="1.5" opacity=".65"/>
+<line x1="60" y1="117" x2="82" y2="113" stroke="white" stroke-width="1.5" opacity=".65"/>
+<line x1="118" y1="109" x2="140" y2="105" stroke="white" stroke-width="1.5" opacity=".65"/>
+<line x1="118" y1="111" x2="140" y2="111" stroke="white" stroke-width="1.5" opacity=".65"/>
+<line x1="118" y1="113" x2="140" y2="117" stroke="white" stroke-width="1.5" opacity=".65"/>
+<!-- nose --><ellipse cx="100" cy="106" rx="7" ry="5.5" fill="#083050"/>
+<!-- star balanced on nose --><polygon points="100,55 103,63 111,63 105,68 107,76 100,72 93,76 95,68 89,63 97,63" fill="#e8c96d" opacity=".95"/>
+<!-- smile --><path d="M89,115 Q100,122 111,115" stroke="#083050" stroke-width="2" fill="none" stroke-linecap="round"/>
+<!-- water waves --><path d="M30,178 Q50,170 70,178 Q90,186 110,178 Q130,170 150,178 Q165,184 172,178" stroke="#90d0f0" stroke-width="2.5" fill="none" stroke-linecap="round" opacity=".6"/>
+${sparkles([[35,55],[165,48],[35,145],[166,142]],2.5,"#90d8f8",.65)}
+</svg>`},
+
+// 18. Crystal Frog
+{id:18,title:"The Crystal Frog",bg:"bg-frog",message:"Transformation begins in the stillness between moments. You are already changing.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g18" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#80e8a0"/><stop offset="100%" stop-color="#106830"/></radialGradient></defs>
+<!-- lily pad --><ellipse cx="100" cy="182" rx="60" ry="18" fill="#1a7830" opacity=".8"/>
+<path d="M100,164 L100,182" stroke="#0d5020" stroke-width="3"/>
+<ellipse cx="100" cy="182" rx="60" ry="18" fill="none" stroke="#0d5020" stroke-width="1.5" opacity=".5"/>
+<!-- hind legs --><ellipse cx="54" cy="155" rx="22" ry="10" fill="#188038" transform="rotate(40 54 155)"/>
+<ellipse cx="146" cy="155" rx="22" ry="10" fill="#188038" transform="rotate(-40 146 155)"/>
+<!-- toes --><circle cx="36" cy="165" r="5" fill="#188038"/><circle cx="42" cy="170" r="5" fill="#188038"/><circle cx="50" cy="172" r="5" fill="#188038"/>
+<circle cx="164" cy="165" r="5" fill="#188038"/><circle cx="158" cy="170" r="5" fill="#188038"/><circle cx="150" cy="172" r="5" fill="#188038"/>
+<!-- body --><ellipse cx="100" cy="138" rx="38" ry="32" fill="url(#g18)"/>
+<!-- belly --><ellipse cx="100" cy="142" rx="26" ry="22" fill="#c0f0d0" opacity=".3"/>
+<!-- front arms --><ellipse cx="68" cy="152" rx="16" ry="8" fill="#188038" transform="rotate(30 68 152)"/>
+<ellipse cx="132" cy="152" rx="16" ry="8" fill="#188038" transform="rotate(-30 132 152)"/>
+<!-- head --><circle cx="100" cy="95" r="40" fill="url(#g18)"/>
+<!-- eyes (big bulging frog eyes) --><circle cx="78" cy="78" r="20" fill="#40a858"/>
+<circle cx="122" cy="78" r="20" fill="#40a858"/>
+<circle cx="78" cy="78" r="14" fill="white" opacity=".95"/>
+<circle cx="122" cy="78" r="14" fill="white" opacity=".95"/>
+<circle cx="78" cy="78" r="9" fill="#1a6030"/><circle cx="78" cy="78" r="5.5" fill="#061a10"/>
+<circle cx="75" cy="75" r="3" fill="white"/>
+<circle cx="122" cy="78" r="9" fill="#1a6030"/><circle cx="122" cy="78" r="5.5" fill="#061a10"/>
+<circle cx="119" cy="75" r="3" fill="white"/>
+<!-- crystal gem forehead --><polygon points="100,58 106,68 100,74 94,68" fill="#80d8f8" opacity=".9"/>
+<polygon points="100,58 106,68 100,62" fill="white" opacity=".6"/>
+<circle cx="100" cy="66" r="3" fill="white" opacity=".5"/>
+<!-- smile --><path d="M84,108 Q100,118 116,108" stroke="#106830" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+${sparkles([[32,48],[168,42],[35,120],[168,118]],2,"#80f0b0",.65)}
+</svg>`},
+
+// 19. Sage Elephant
+{id:19,title:"The Sage Elephant",bg:"bg-elephant",message:"Memory and wisdom walk hand in hand. Honor all that you have carried.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g19" cx="50%" cy="35%" r="65%"><stop offset="0%" stop-color="#a0a8d8"/><stop offset="100%" stop-color="#303868"/></radialGradient></defs>
+<!-- big ears --><ellipse cx="52" cy="100" rx="38" ry="48" fill="#484878" opacity=".85"/>
+<ellipse cx="148" cy="100" rx="38" ry="48" fill="#484878" opacity=".85"/>
+<ellipse cx="52" cy="100" rx="26" ry="34" fill="#8888b8" opacity=".4"/>
+<ellipse cx="148" cy="100" rx="26" ry="34" fill="#8888b8" opacity=".4"/>
+<!-- body --><ellipse cx="100" cy="158" rx="42" ry="38" fill="#404878"/>
+<!-- head --><circle cx="100" cy="90" r="46" fill="url(#g19)"/>
+<!-- trunk --><path d="M84,126 Q68,148 72,166 Q76,180 86,174" stroke="#505888" stroke-width="16" fill="none" stroke-linecap="round"/>
+<path d="M84,126 Q68,148 72,166 Q76,180 86,174" stroke="#7878a8" stroke-width="10" fill="none" stroke-linecap="round" opacity=".4"/>
+<!-- round glasses --><circle cx="84" cy="86" r="15" fill="white" opacity=".85"/>
+<circle cx="116" cy="86" r="15" fill="white" opacity=".85"/>
+<circle cx="84" cy="86" r="15" fill="none" stroke="#e8c96d" stroke-width="2.5"/>
+<circle cx="116" cy="86" r="15" fill="none" stroke="#e8c96d" stroke-width="2.5"/>
+<line x1="99" y1="86" x2="101" y2="86" stroke="#e8c96d" stroke-width="2.5"/>
+<!-- irises --><circle cx="84" cy="86" r="9" fill="#283060"/><circle cx="84" cy="86" r="5" fill="#0a1030"/><circle cx="81" cy="83" r="2.5" fill="white"/>
+<circle cx="116" cy="86" r="9" fill="#283060"/><circle cx="116" cy="86" r="5" fill="#0a1030"/><circle cx="113" cy="83" r="2.5" fill="white"/>
+<!-- tiny book held by trunk --><rect x="56" y="158" width="26" height="20" rx="2" fill="#c89050"/>
+<rect x="58" y="160" width="22" height="16" rx="1" fill="#f0d898"/>
+<line x1="69" y1="160" x2="69" y2="176" stroke="#c89050" stroke-width="1.5"/>
+<!-- wrinkle lines on forehead --><path d="M88,64 Q100,60 112,64" stroke="#505888" stroke-width="1.5" fill="none" opacity=".5"/>
+<path d="M84,70 Q100,66 116,70" stroke="#505888" stroke-width="1.5" fill="none" opacity=".4"/>
+<!-- tusks --><path d="M86,120 Q76,132 80,144" stroke="#f0e8d0" stroke-width="5" fill="none" stroke-linecap="round"/>
+<path d="M114,120 Q124,132 120,144" stroke="#f0e8d0" stroke-width="5" fill="none" stroke-linecap="round"/>
+${sparkles([[30,50],[168,45],[35,175],[168,172]],2.5,"#c0c8ff",.6)}
+</svg>`},
+
+// 20. Wish Hedgehog
+{id:20,title:"The Wish Hedgehog",bg:"bg-hedgehog",message:"Protect your softness — gentleness is one of the most powerful things you own.",svg:`<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+<defs><radialGradient id="g20" cx="45%" cy="35%" r="65%"><stop offset="0%" stop-color="#e8b0c8"/><stop offset="100%" stop-color="#803060"/></radialGradient></defs>
+<!-- spiky back (draw as stacked triangles behind body) -->
+<polygon points="100,38 95,58 105,58" fill="#6a2848"/>
+<polygon points="115,42 108,62 122,62" fill="#7a3058"/>
+<polygon points="128,52 120,72 136,72" fill="#6a2848"/>
+<polygon points="136,66 128,86 144,86" fill="#7a3058"/>
+<polygon points="138,84 130,104 146,104" fill="#6a2848"/>
+<polygon points="85,42 78,62 92,62" fill="#7a3058"/>
+<polygon points="72,52 64,72 80,72" fill="#6a2848"/>
+<polygon points="64,66 56,86 72,86" fill="#7a3058"/>
+<polygon points="62,84 54,104 70,104" fill="#6a2848"/>
+<!-- body --><ellipse cx="100" cy="130" rx="52" ry="46" fill="url(#g20)"/>
+<!-- belly (lighter) --><ellipse cx="100" cy="138" rx="36" ry="32" fill="#f0c0d8" opacity=".35"/>
+<!-- head --><circle cx="100" cy="92" r="36" fill="#d080a8"/>
+<!-- muzzle snout --><ellipse cx="116" cy="106" rx="20" ry="14" fill="#f0b0c8" opacity=".5"/>
+<!-- eye -->${eye(90,88,12,"#6a2050")}${eye(116,88,8,"#6a2050")}
+<!-- nose --><ellipse cx="122" cy="106" rx="5.5" ry="4.5" fill="#a03060"/>
+<!-- smile --><path d="M112,113 Q120,119 126,113" stroke="#a03060" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+<!-- flower bouquet --><circle cx="60" cy="95" r="9" fill="#f06090" opacity=".9"/>
+<circle cx="50" cy="85" r="8" fill="#f0a060" opacity=".9"/>
+<circle cx="45" cy="100" r="7" fill="#90d060" opacity=".9"/>
+<circle cx="55" cy="108" r="8" fill="#a060f0" opacity=".85"/>
+<circle cx="48" cy="110" r="6" fill="#60c0f0" opacity=".85"/>
+<!-- flower centers --><circle cx="60" cy="95" r="4" fill="#f8e060"/><circle cx="50" cy="85" r="3.5" fill="#f8e060"/>
+<circle cx="55" cy="108" r="3.5" fill="#f8e060"/><circle cx="48" cy="110" r="3" fill="#f8e060"/>
+<!-- stems --><path d="M58,104 Q58,115 60,125" stroke="#40a030" stroke-width="2" fill="none"/>
+<path d="M50,93 Q52,110 56,122" stroke="#40a030" stroke-width="2" fill="none"/>
+<!-- little ears --><ellipse cx="82" cy="60" rx="12" ry="16" fill="#c06898" transform="rotate(-10 82 60)"/>
+<ellipse cx="82" cy="60" rx="7" ry="10" fill="#f0a8c8" opacity=".6" transform="rotate(-10 82 60)"/>
+<!-- sparkles -->${sparkles([[148,55],[168,80],[155,140],[32,55],[38,148]],2.5,"#f0d0e8",.75)}
+<polygon points="158,58 160,52 162,58 168,60 162,62 160,68 158,62 152,60" fill="#f0c8e0" opacity=".8"/>
+</svg>`}
+
+]; // end CARDS
+
+// ─── Cursor sparkles ───────────────────────────────────────────
+const SPARKLE_CHARS = ['✦','✧','⋆','·','✩','˚','*','✫'];
+const SPARKLE_COLORS = ['#e8c96d','#f5e4a0','#ffffff','#d4b8ff','#b8d4ff','#ffb8d4','#c8ffb8'];
+let lastSparkleTime = 0;
+
+function spawnSparkle(x, y) {
+  const now = Date.now();
+  if (now - lastSparkleTime < 35) return;
+  lastSparkleTime = now;
+
+  const el = document.createElement('span');
+  el.className = 'csparkle';
+  el.textContent = SPARKLE_CHARS[Math.floor(Math.random() * SPARKLE_CHARS.length)];
+  const dx = (Math.random() - .5) * 80;
+  const dy = -(Math.random() * 70 + 20);
+  const dr = (Math.random() - .5) * 360 + 'deg';
+  el.style.cssText = `left:${x}px;top:${y}px;color:${SPARKLE_COLORS[Math.floor(Math.random()*SPARKLE_COLORS.length)]};font-size:${Math.random()*12+8}px;--dx:${dx}px;--dy:${dy}px;--dr:${dr}`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 950);
+}
+
+document.addEventListener('mousemove', e => spawnSparkle(e.clientX, e.clientY));
+document.addEventListener('touchmove', e => {
+  const t = e.touches[0];
+  spawnSparkle(t.clientX, t.clientY);
+}, {passive: true});
+
+// occasional random ambient sparkle
+setInterval(() => {
+  spawnSparkle(
+    Math.random() * window.innerWidth,
+    Math.random() * window.innerHeight * .7
+  );
+}, 800);
+
+// ─── App Logic ─────────────────────────────────────────────────
+let isFlipped = false, isAnimating = false, lastCardId = null;
 
 function pickCard() {
   let card;
-  do {
-    card = CARDS[Math.floor(Math.random() * CARDS.length)];
-  } while (CARDS.length > 1 && card.id === lastCardId);
+  do { card = CARDS[Math.floor(Math.random() * CARDS.length)]; }
+  while (CARDS.length > 1 && card.id === lastCardId);
   lastCardId = card.id;
   return card;
 }
 
 function populateCard(card) {
   const inner = document.getElementById('cardFrontInner');
-  // Remove old bg classes
   CARDS.forEach(c => inner.classList.remove(c.bg));
   inner.classList.add(card.bg);
-
   document.getElementById('cardNumber').textContent = `No. ${String(card.id).padStart(2,'0')}`;
-  document.getElementById('animalEmoji').textContent = card.emoji;
+  document.getElementById('animalSvg').innerHTML = card.svg;
   document.getElementById('cardTitleFront').textContent = card.title;
   document.getElementById('cardMessage').textContent = card.message;
 }
 
 function handleDraw() {
   if (isAnimating) return;
+  const btn = document.getElementById('drawBtn');
+  const statusEl = document.getElementById('statusText');
+  const cardInner = document.getElementById('cardInner');
+  const cardStage = document.getElementById('cardStage');
+  const hint = document.getElementById('tapHint');
 
   if (!isFlipped) {
-    // Draw a new card
     isAnimating = true;
-    const btn = document.getElementById('drawBtn');
-    const statusEl = document.getElementById('statusText');
-    const cardInner = document.getElementById('cardInner');
-    const cardStage = document.getElementById('cardStage');
-
-    const phrases = [
-      "Consulting the animal spirits...",
-      "Shuffling the fates...",
-      "The spirits are speaking...",
-      "Reading the celestial signs..."
-    ];
+    const phrases = ["Consulting the animal spirits","Shuffling the fates","The spirits are speaking","Reading the celestial signs"];
     const phrase = phrases[Math.floor(Math.random() * phrases.length)];
-
-    document.getElementById('tapHint').classList.add('hidden');
     btn.disabled = true;
-    btn.textContent = "✦ " + phrase.replace('...','') + "... ✦";
-    statusEl.textContent = phrase;
+    btn.textContent = `✦ ${phrase}... ✦`;
+    statusEl.textContent = phrase + '...';
     statusEl.classList.remove('hidden');
+    hint.classList.add('hidden');
 
-    currentCard = pickCard();
-    populateCard(currentCard);
+    const card = pickCard();
+    populateCard(card);
 
     cardStage.classList.add('glowing');
     cardInner.classList.add('shuffling');
@@ -875,28 +813,21 @@ function handleDraw() {
       cardInner.classList.remove('shuffling');
       cardInner.classList.add('flipped');
       cardStage.classList.remove('glowing');
-
       isFlipped = true;
       isAnimating = false;
-
       btn.disabled = false;
-      btn.textContent = "✦ Draw Another Card ✦";
+      btn.textContent = '✦ Draw Another Card ✦';
       statusEl.classList.add('hidden');
-    }, 3000);
+    }, 6000);
 
   } else {
-    // Reset to card back
     isAnimating = true;
-    const btn = document.getElementById('drawBtn');
-    const cardInner = document.getElementById('cardInner');
-
-    cardInner.style.transition = 'transform 0.7s cubic-bezier(0.4, 0, 0.2, 1)';
+    cardInner.style.transition = 'transform 0.7s cubic-bezier(0.4,0,0.2,1)';
     cardInner.classList.remove('flipped');
-
     setTimeout(() => {
       isFlipped = false;
       isAnimating = false;
-      btn.textContent = "✦ Draw Your Daily Oracle ✦";
+      btn.textContent = '✦ Draw Your Daily Oracle ✦';
       cardInner.style.transition = '';
       document.getElementById('tapHint').classList.remove('hidden');
     }, 750);
