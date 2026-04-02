@@ -141,6 +141,33 @@
   @media(max-width:400px){.card-stage{max-width:290px}.btn-draw{padding:.8rem 1.8rem;min-width:190px}}
   @media(min-width:600px){.card-stage{max-width:360px}}
 
+  /* ── Shuffle Overlay ── */
+  #shuffleOverlay{position:fixed;inset:0;z-index:500;pointer-events:none;display:none;perspective:1200px;background:rgba(10,5,30,.68);backdrop-filter:blur(3px)}
+  #shuffleOverlay.active{display:block;pointer-events:auto}
+  .scard{position:absolute;width:110px;height:187px;left:calc(50% - 55px);top:calc(50% - 93px);transform-style:preserve-3d;pointer-events:none;opacity:0;transform:scale(0)}
+  .scard.deployed{pointer-events:none}
+  #shuffleOverlay.select-mode .scard.deployed{pointer-events:auto;cursor:pointer}
+  #shuffleOverlay.select-mode .scard.deployed:hover .scard-back-face{box-shadow:0 0 0 2px rgba(232,201,109,.9),0 8px 40px rgba(232,201,109,.55),0 0 40px rgba(180,120,255,.45)}
+  .scard-tilt{width:100%;height:100%;transform-style:preserve-3d;transition:transform .12s ease}
+  .scard-flip{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .95s cubic-bezier(.4,0,.2,1)}
+  .scard-flip.flipped{transform:rotateY(180deg)}
+  .scard-face{position:absolute;inset:0;border-radius:12px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+  .scard-back-face{background:linear-gradient(160deg,#1e1245,#2d1b5e,#1a1035);border:1.5px solid rgba(232,201,109,.5);box-shadow:0 8px 32px rgba(0,0,0,.6),inset 0 0 20px rgba(100,60,180,.15);display:flex;align-items:center;justify-content:center;transition:box-shadow .2s}
+  .scard-back-inner{width:88%;height:90%;border:1px solid rgba(232,201,109,.28);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 50%,rgba(100,60,180,.2),transparent 70%);position:relative}
+  .scard-key{font-size:2rem;filter:drop-shadow(0 0 10px rgba(232,201,109,.6));animation:keyFloat 4s ease-in-out infinite;line-height:1}
+  .scard-label{font-family:'Playfair Display',serif;font-style:italic;font-size:.42rem;color:rgba(232,201,109,.6);letter-spacing:.15em;margin-top:.4rem;text-align:center}
+  .scard-corner{position:absolute;color:rgba(232,201,109,.45);font-size:.65rem;line-height:1}
+  .scard-corner.tl{top:5px;left:5px}
+  .scard-corner.br{bottom:5px;right:5px}
+  .scard-front-face{transform:rotateY(180deg);background:linear-gradient(145deg,#2d1b5e,#1a1035);border:1.5px solid rgba(232,201,109,.6);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .scard-front-img{flex:1;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:.4rem .4rem 0}
+  .scard-front-img img{width:100%;height:auto;display:block;border-radius:4px}
+  .scard-front-text{padding:.25rem .35rem .35rem;background:rgba(0,0,0,.35);text-align:center}
+  .scard-front-title{font-family:'Playfair Display',serif;font-size:.4rem;color:var(--gold-light);letter-spacing:.05em;font-weight:700}
+  .scard-front-msg{font-family:'Lora',serif;font-style:italic;font-size:.34rem;color:rgba(255,255,255,.85);line-height:1.4;margin-top:.1rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .shuffle-status{position:fixed;bottom:18%;left:50%;transform:translateX(-50%);z-index:501;font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(.9rem,3vw,1.1rem);color:rgba(232,201,109,.9);letter-spacing:.15em;text-align:center;pointer-events:none;text-shadow:0 0 20px rgba(232,201,109,.5);white-space:nowrap;animation:statusPulse 1.5s ease-in-out infinite}
+  #burstCanvas{position:fixed;inset:0;pointer-events:none;z-index:600;display:none}
+
   /* ── Footer ── */
   .site-footer{position:relative;z-index:1;width:100%;max-width:480px;text-align:center;padding:.8rem 1rem 1.6rem;border-top:1px solid rgba(232,201,109,.12);margin-top:.5rem}
   .site-footer p{font-family:'Lora',serif;font-size:.68rem;color:rgba(255,255,255,.28);letter-spacing:.1em;margin-bottom:.5rem}
@@ -220,6 +247,9 @@
   <div class="ad-space">AD SPACE · 320×50</div>
 </div>
 
+<div id="shuffleOverlay" aria-hidden="true"></div>
+<canvas id="burstCanvas" aria-hidden="true"></canvas>
+
 <footer class="site-footer">
   <p>© 2026 Animal Oracle. All rights reserved.</p>
   <nav class="footer-links">
@@ -266,11 +296,15 @@ const IMAGES = [
   'スクリーンショット 2026-04-02 13.12.36.png',
   'スクリーンショット 2026-04-02 13.12.48.png',
   'スクリーンショット 2026-04-02 13.14.00.png',
-  'スクリーンショット 2026-04-02 13.15.05.png'
+  'スクリーンショット 2026-04-02 13.15.05.png',
+  'lucid-origin_Luminous_Firefly_光るホタル_imagine_prompt_A_glowing_firefly_inside_a_delic-0.jpg',
+  'lucid-origin_imagine_prompt_A_hedgehog_with_glowing_crystals_instead_of_quills_carrying_a_tin-0.jpg',
+  'lucid-origin_imagine_prompt_A_small_brave_lion_cub_with_a_mane_made_of_sunflower_petals_stand-0.jpg',
+  'lucid-origin_Eternal_Turtle_永遠のウミガメ_imagine_prompt_An_ancient_sea_turtle_with_a-0.jpg',
+  'lucid-origin_Guardian_Wolf_守護のオオカミ_imagine_prompt_A_noble_white_wolf_with_blue_-0.jpg',
+  'lucid-origin_Wisdom_Crow_知恵のカラス_imagine_prompt_A_glossy_crow_holding_a_silver_key-0.jpg'
 ];
-
 let lastImageIdx = null;
-
 function pickImage() {
   let idx;
   do { idx = Math.floor(Math.random() * IMAGES.length); }
@@ -281,79 +315,36 @@ function pickImage() {
 
 // ─── 20 Cards ──────────────────────────────────────────────────
 const CARDS = [
-
-// 1. Stellar Owl
-{id:1,title:"The Stellar Owl",bg:"bg-owl",message:"Trust your intuition. Wisdom often speaks in whispers."},
-
-// 2. Fox of Secrets
-{id:2,title:"The Fox of Secrets",bg:"bg-fox",message:"Curiosity opens doors others walk past. Follow the spark within you."},
-
-// 3. Bear of Stars
-{id:3,title:"The Bear of Stars",bg:"bg-bear",message:"Rest is sacred. Your deepest strength is renewed in stillness."},
-
-// 4. Butterfly Oracle
-{id:4,title:"The Butterfly Oracle",bg:"bg-butterfly",message:"Change is your birthright. The becoming is as beautiful as the arrival."},
-
-// 5. Moon Cat
-{id:5,title:"The Moon Cat",bg:"bg-cat",message:"Walk softly through this day. Magic is drawn to those who listen."},
-
-// 6. Golden Deer
-{id:6,title:"The Golden Deer",bg:"bg-deer",message:"You are exactly where you need to be. Move with grace, not urgency."},
-
-// 7. Dream Rabbit
-{id:7,title:"The Dream Rabbit",bg:"bg-rabbit",message:"Your dreams are seeds. Plant them with belief and water them with patience."},
-
-// 8. Storm Raven
-{id:8,title:"The Storm Raven",bg:"bg-raven",message:"After every storm, something new takes root. Hold on a little longer."},
-
-// 9. Ember Fox
-{id:9,title:"The Ember Fox",bg:"bg-ffox",message:"Your cleverness is a rare gift. Use it with warmth and kindness."},
-
-// 10. Cosmic Turtle
-{id:10,title:"The Cosmic Turtle",bg:"bg-turtle",message:"Slow and steady reveals the deeper path. Patience is its own power."},
-
-// 11. Ember Phoenix
-{id:11,title:"The Ember Phoenix",bg:"bg-phoenix",message:"You rise from what you thought would break you. This is how you were made."},
-
-// 12. Pearl Dolphin
-{id:12,title:"The Pearl Dolphin",bg:"bg-dolphin",message:"Joy is not a reward for hard work. It is your most natural state of being."},
-
-// 13. Velvet Mouse
-{id:13,title:"The Velvet Mouse",bg:"bg-mouse",message:"Even the smallest steps move mountains over time. You are doing enough."},
-
-// 14. Silver Wolf
-{id:14,title:"The Silver Wolf",bg:"bg-wolf",message:"Trust your instincts and your people. Love and loyalty are your truest north."},
-
-// 15. Lantern Firefly
-{id:15,title:"The Lantern Firefly",bg:"bg-firefly",message:"Your light matters more than you will ever know. Keep shining, even softly."},
-
-// 16. Amber Bee
-{id:16,title:"The Amber Bee",bg:"bg-bee",message:"Diligence and sweetness are not opposites. Both are yours to carry with pride."},
-
-// 17. Tide Seal
-{id:17,title:"The Tide Seal",bg:"bg-seal",message:"Release what you cannot control to the waves. Then float, freely and fully."},
-
-// 18. Crystal Frog
-{id:18,title:"The Crystal Frog",bg:"bg-frog",message:"Transformation begins in the stillness between moments. You are already changing."},
-
-// 19. Sage Elephant
-{id:19,title:"The Sage Elephant",bg:"bg-elephant",message:"Memory and wisdom walk hand in hand. Honor all that you have carried."},
-
-// 20. Wish Hedgehog
-{id:20,title:"The Wish Hedgehog",bg:"bg-hedgehog",message:"Protect your softness — gentleness is one of the most powerful things you own."}
-
-]; // end CARDS
+{id:1, title:"The Stellar Owl",      bg:"bg-owl",      message:"Trust your intuition. Wisdom often speaks in whispers."},
+{id:2, title:"The Fox of Secrets",   bg:"bg-fox",      message:"Curiosity opens doors others walk past. Follow the spark within you."},
+{id:3, title:"The Bear of Stars",    bg:"bg-bear",     message:"Rest is sacred. Your deepest strength is renewed in stillness."},
+{id:4, title:"The Butterfly Oracle", bg:"bg-butterfly",message:"Change is your birthright. The becoming is as beautiful as the arrival."},
+{id:5, title:"The Moon Cat",         bg:"bg-cat",      message:"Walk softly through this day. Magic is drawn to those who listen."},
+{id:6, title:"The Golden Deer",      bg:"bg-deer",     message:"You are exactly where you need to be. Move with grace, not urgency."},
+{id:7, title:"The Dream Rabbit",     bg:"bg-rabbit",   message:"Your dreams are seeds. Plant them with belief and water them with patience."},
+{id:8, title:"The Storm Raven",      bg:"bg-raven",    message:"After every storm, something new takes root. Hold on a little longer."},
+{id:9, title:"The Ember Fox",        bg:"bg-ffox",     message:"Your cleverness is a rare gift. Use it with warmth and kindness."},
+{id:10,title:"The Cosmic Turtle",    bg:"bg-turtle",   message:"Slow and steady reveals the deeper path. Patience is its own power."},
+{id:11,title:"The Ember Phoenix",    bg:"bg-phoenix",  message:"You rise from what you thought would break you. This is how you were made."},
+{id:12,title:"The Pearl Dolphin",    bg:"bg-dolphin",  message:"Joy is not a reward for hard work. It is your most natural state of being."},
+{id:13,title:"The Velvet Mouse",     bg:"bg-mouse",    message:"Even the smallest steps move mountains over time. You are doing enough."},
+{id:14,title:"The Silver Wolf",      bg:"bg-wolf",     message:"Trust your instincts and your people. Love and loyalty are your truest north."},
+{id:15,title:"The Lantern Firefly",  bg:"bg-firefly",  message:"Your light matters more than you will ever know. Keep shining, even softly."},
+{id:16,title:"The Amber Bee",        bg:"bg-bee",      message:"Diligence and sweetness are not opposites. Both are yours to carry with pride."},
+{id:17,title:"The Tide Seal",        bg:"bg-seal",     message:"Release what you cannot control to the waves. Then float, freely and fully."},
+{id:18,title:"The Crystal Frog",     bg:"bg-frog",     message:"Transformation begins in the stillness between moments. You are already changing."},
+{id:19,title:"The Sage Elephant",    bg:"bg-elephant", message:"Memory and wisdom walk hand in hand. Honor all that you have carried."},
+{id:20,title:"The Wish Hedgehog",    bg:"bg-hedgehog", message:"Protect your softness — gentleness is one of the most powerful things you own."}
+];
 
 // ─── Cursor sparkles ───────────────────────────────────────────
 const SPARKLE_CHARS = ['✦','✧','⋆','·','✩','˚','*','✫'];
 const SPARKLE_COLORS = ['#e8c96d','#f5e4a0','#ffffff','#d4b8ff','#b8d4ff','#ffb8d4','#c8ffb8'];
 let lastSparkleTime = 0;
-
 function spawnSparkle(x, y) {
   const now = Date.now();
   if (now - lastSparkleTime < 35) return;
   lastSparkleTime = now;
-
   const el = document.createElement('span');
   el.className = 'csparkle';
   el.textContent = SPARKLE_CHARS[Math.floor(Math.random() * SPARKLE_CHARS.length)];
@@ -364,33 +355,19 @@ function spawnSparkle(x, y) {
   document.body.appendChild(el);
   setTimeout(() => el.remove(), 950);
 }
-
 document.addEventListener('mousemove', e => spawnSparkle(e.clientX, e.clientY));
-document.addEventListener('touchmove', e => {
-  const t = e.touches[0];
-  spawnSparkle(t.clientX, t.clientY);
-}, {passive: true});
-
-// occasional random ambient sparkle
-setInterval(() => {
-  spawnSparkle(
-    Math.random() * window.innerWidth,
-    Math.random() * window.innerHeight * .7
-  );
-}, 800);
+document.addEventListener('touchmove', e => { const t = e.touches[0]; spawnSparkle(t.clientX, t.clientY); }, {passive:true});
+setInterval(() => { spawnSparkle(Math.random() * window.innerWidth, Math.random() * window.innerHeight * .7); }, 800);
 
 // ─── Daily Limit ────────────────────────────────────────────────
 const LS_KEY = 'animalOracle_daily';
-
 function todayStr() {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
-
 function saveDaily(cardId) {
   localStorage.setItem(LS_KEY, JSON.stringify({date: todayStr(), cardId}));
 }
-
 function loadDaily() {
   try {
     const raw = localStorage.getItem(LS_KEY);
@@ -400,7 +377,6 @@ function loadDaily() {
   } catch(e) {}
   return null;
 }
-
 function applyDailyLimit() {
   const btn = document.getElementById('drawBtn');
   btn.disabled = true;
@@ -409,22 +385,9 @@ function applyDailyLimit() {
   document.getElementById('tapHint').classList.add('hidden');
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const daily = loadDaily();
-  if (!daily) return;
-  const card = CARDS.find(c => c.id === daily.cardId);
-  if (!card) return;
-  populateCard(card);
-  const cardInner = document.getElementById('cardInner');
-  cardInner.style.transition = 'none';
-  cardInner.classList.add('flipped');
-  requestAnimationFrame(() => { cardInner.style.transition = ''; });
-  isFlipped = true;
-  applyDailyLimit();
-});
-
-// ─── App Logic ─────────────────────────────────────────────────
+// ─── App State ─────────────────────────────────────────────────
 let isFlipped = false, isAnimating = false, lastCardId = null;
+let chosenCard = null, chosenImageSrc = null;
 
 function pickCard() {
   let card;
@@ -449,44 +412,244 @@ function populateCard(card, imageSrc) {
   document.getElementById('cardMessage').textContent = card.message;
 }
 
+// ─── Draw Flow ─────────────────────────────────────────────────
 function handleDraw() {
   if (isAnimating || loadDaily()) return;
+  isAnimating = true;
+
+  // Commit card + image NOW — prevents reload cheating
+  chosenCard = pickCard();
+  chosenImageSrc = pickImage();
+  saveDaily(chosenCard.id);
+  populateCard(chosenCard, chosenImageSrc);
+
   const btn = document.getElementById('drawBtn');
-  const statusEl = document.getElementById('statusText');
-  const cardInner = document.getElementById('cardInner');
-  const cardStage = document.getElementById('cardStage');
-  const hint = document.getElementById('tapHint');
+  btn.disabled = true;
+  btn.textContent = '✦ Shuffling the Fates... ✦';
+  document.getElementById('tapHint').classList.add('hidden');
+  document.getElementById('statusText').classList.add('hidden');
 
-  if (!isFlipped) {
-    isAnimating = true;
-    const phrases = ["Consulting the animal spirits","Shuffling the fates","The spirits are speaking","Reading the celestial signs"];
-    const phrase = phrases[Math.floor(Math.random() * phrases.length)];
-    btn.disabled = true;
-    btn.textContent = `✦ ${phrase}... ✦`;
-    statusEl.textContent = phrase + '...';
-    statusEl.classList.remove('hidden');
-    hint.classList.add('hidden');
-
-    const card = pickCard();
-    populateCard(card);
-
-    cardStage.classList.add('glowing');
-    cardInner.classList.add('shuffling');
-
-    setTimeout(() => {
-      cardInner.classList.remove('shuffling');
-      cardInner.classList.add('flipped');
-      cardStage.classList.remove('glowing');
-      isFlipped = true;
-      isAnimating = false;
-      statusEl.classList.add('hidden');
-      saveDaily(card.id);
-      applyDailyLimit();
-    }, 6000);
-  }
+  startShufflePhase();
 }
 
-// ─── Privacy Modal ──────────────────────────────────────────────
+function startShufflePhase() {
+  const overlay = document.getElementById('shuffleOverlay');
+  overlay.innerHTML = '';
+  overlay.style.opacity = '1';
+  overlay.classList.add('active');
+
+  // Status label inside overlay
+  const statusEl = document.createElement('div');
+  statusEl.className = 'shuffle-status';
+  statusEl.textContent = 'Shuffling the fates...';
+  overlay.appendChild(statusEl);
+
+  // Responsive spread positions
+  const vw = window.innerWidth, vh = window.innerHeight;
+  const sx = Math.min(vw * 0.38, 215);
+  const sy = Math.min(vh * 0.26, 130);
+  const SPREAD = [
+    {x:-sx,      y:-sy,      r:-22},
+    {x:-sx*0.28, y:-sy*1.45, r:  9},
+    {x: sx*0.78, y:-sy*1.05, r: 21},
+    {x: sx,      y: sy*0.58, r:-11},
+    {x: sx*0.18, y: sy*1.28, r: 26},
+    {x:-sx*0.88, y: sy*0.95, r:-19},
+  ];
+
+  const cards = SPREAD.map((p, i) => {
+    const sc = document.createElement('div');
+    sc.className = 'scard';
+    sc.innerHTML =
+      `<div class="scard-tilt"><div class="scard-flip">
+        <div class="scard-face scard-back-face"><div class="scard-back-inner">
+          <span class="scard-corner tl">✦</span><span class="scard-corner br">✦</span>
+          <div class="scard-key">🗝️</div>
+          <div class="scard-label">Animal Oracle</div>
+        </div></div>
+        <div class="scard-face scard-front-face"></div>
+      </div></div>`;
+    overlay.appendChild(sc);
+
+    // Animate outward from center
+    setTimeout(() => {
+      sc.style.transition = `transform 0.8s cubic-bezier(.34,1.2,.64,1), opacity 0.5s ease`;
+      sc.style.transform = `translate(${p.x}px,${p.y}px) rotate(${p.r}deg)`;
+      sc.style.opacity = '1';
+      setTimeout(() => sc.classList.add('deployed'), 870);
+    }, 60 + i * 90);
+
+    sc._p = p;
+    return sc;
+  });
+
+  // Parallax tilt on mouse/touch
+  const tiltHandler = (e) => {
+    const ex = e.touches ? e.touches[0].clientX : e.clientX;
+    const ey = e.touches ? e.touches[0].clientY : e.clientY;
+    const mx = (ex / window.innerWidth  - 0.5) * 20;
+    const my = (ey / window.innerHeight - 0.5) * 20;
+    cards.forEach(sc => {
+      sc.querySelector('.scard-tilt').style.transform = `rotateY(${mx}deg) rotateX(${-my}deg)`;
+    });
+  };
+  document.addEventListener('mousemove', tiltHandler);
+  document.addEventListener('touchmove', tiltHandler, {passive:true});
+  overlay._cleanup = () => {
+    document.removeEventListener('mousemove', tiltHandler);
+    document.removeEventListener('touchmove', tiltHandler);
+  };
+
+  setTimeout(() => enterSelectPhase(overlay, cards, statusEl), 8000);
+}
+
+function enterSelectPhase(overlay, cards, statusEl) {
+  statusEl.textContent = 'Select your destiny...';
+  overlay.classList.add('select-mode');
+  cards.forEach(sc => {
+    sc.addEventListener('click', () => onCardSelected(sc, overlay, cards), {once:true});
+  });
+}
+
+function onCardSelected(sc, overlay, allCards) {
+  if (!sc.classList.contains('deployed')) return;
+  // Lock — prevent double-selection
+  allCards.forEach(c => { c.style.pointerEvents = 'none'; });
+  if (overlay._cleanup) { overlay._cleanup(); delete overlay._cleanup; }
+  overlay.classList.remove('select-mode');
+
+  // Smoothly reset tilt on chosen card
+  const tiltEl = sc.querySelector('.scard-tilt');
+  tiltEl.style.transition = 'transform 0.3s ease';
+  tiltEl.style.transform = 'none';
+
+  // Populate front face of chosen spread card
+  const frontEl = sc.querySelector('.scard-front-face');
+  const imgWrap = document.createElement('div');
+  imgWrap.className = 'scard-front-img';
+  const imgEl = document.createElement('img');
+  imgEl.src = chosenImageSrc;
+  imgEl.alt = chosenCard.title;
+  imgWrap.appendChild(imgEl);
+  const textDiv = document.createElement('div');
+  textDiv.className = 'scard-front-text';
+  textDiv.innerHTML = `<div class="scard-front-title">${chosenCard.title}</div><div class="scard-front-msg">${chosenCard.message}</div>`;
+  frontEl.appendChild(imgWrap);
+  frontEl.appendChild(textDiv);
+
+  // Scatter unchosen cards
+  allCards.forEach(c => {
+    if (c === sc) return;
+    const p = c._p;
+    c.style.transition = 'transform 0.45s ease, opacity 0.35s ease';
+    c.style.opacity = '0';
+    c.style.transform = `translate(${p.x*1.5}px,${p.y*1.5}px) rotate(${p.r*2}deg) scale(0.3)`;
+  });
+
+  // Move chosen card to viewport center and scale up
+  const scale = Math.min(280, window.innerWidth * 0.7) / 110;
+  sc.style.zIndex = '10';
+  sc.style.transition = 'transform 1s cubic-bezier(.4,0,.2,1)';
+  sc.style.transform = `translate(0px,0px) rotate(0deg) scale(${scale})`;
+
+  // Flip after arrival
+  setTimeout(() => {
+    sc.querySelector('.scard-flip').classList.add('flipped');
+    // Burst then reveal main card
+    setTimeout(() => {
+      fireBurst();
+      setTimeout(revealMainCard, 700);
+    }, 950);
+  }, 1050);
+}
+
+// ─── Gold Particle Burst ────────────────────────────────────────
+function fireBurst() {
+  const canvas = document.getElementById('burstCanvas');
+  canvas.style.display = 'block';
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const cx = window.innerWidth  / 2;
+  const cy = window.innerHeight / 2;
+  const COLORS = ['#e8c96d','#f5e4a0','#ffffff','#d4b8ff','#ffd700','#fff0a0','#ffb8d4','#c8ffb8'];
+
+  const particles = Array.from({length: 100}, () => {
+    const angle = Math.random() * Math.PI * 2;
+    const speed = Math.random() * 11 + 4;
+    return {
+      x: cx, y: cy,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed - 2.5,
+      r: Math.random() * 5 + 2,
+      color: COLORS[Math.floor(Math.random() * COLORS.length)],
+      alpha: 1,
+      decay: Math.random() * 0.018 + 0.011,
+      square: Math.random() < 0.3,
+    };
+  });
+
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    let alive = false;
+    particles.forEach(p => {
+      if (p.alpha <= 0) return;
+      alive = true;
+      p.x += p.vx; p.y += p.vy; p.vy += 0.28; p.alpha -= p.decay;
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, p.alpha);
+      ctx.fillStyle = p.color;
+      if (p.square) ctx.fillRect(p.x - p.r * .6, p.y - p.r * .6, p.r * 1.2, p.r * 1.2);
+      else { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
+      ctx.restore();
+    });
+    if (alive) requestAnimationFrame(animate);
+    else canvas.style.display = 'none';
+  }
+  animate();
+}
+
+// ─── Reveal Main Card ──────────────────────────────────────────
+function revealMainCard() {
+  const overlay = document.getElementById('shuffleOverlay');
+  overlay.style.transition = 'opacity 0.7s ease';
+  overlay.style.opacity = '0';
+  setTimeout(() => {
+    overlay.classList.remove('active');
+    overlay.style.opacity = '';
+    overlay.innerHTML = '';
+  }, 700);
+
+  const cardInner = document.getElementById('cardInner');
+  const cardStage = document.getElementById('cardStage');
+  cardInner.style.transition = 'none';
+  cardInner.classList.add('flipped');
+  requestAnimationFrame(() => { cardInner.style.transition = ''; });
+  isFlipped    = true;
+  isAnimating  = false;
+
+  cardStage.classList.add('glowing');
+  setTimeout(() => cardStage.classList.remove('glowing'), 2500);
+
+  applyDailyLimit();
+}
+
+// ─── DOMContentLoaded restore ─────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  const daily = loadDaily();
+  if (!daily) return;
+  const card = CARDS.find(c => c.id === daily.cardId);
+  if (!card) return;
+  populateCard(card);
+  const cardInner = document.getElementById('cardInner');
+  cardInner.style.transition = 'none';
+  cardInner.classList.add('flipped');
+  requestAnimationFrame(() => { cardInner.style.transition = ''; });
+  isFlipped = true;
+  applyDailyLimit();
+});
+
+// ─── Privacy Modal ─────────────────────────────────────────────
 function openPrivacy() {
   document.getElementById('privacyModal').classList.add('open');
   document.body.style.overflow = 'hidden';
