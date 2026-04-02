@@ -140,6 +140,24 @@
   .bg-hedgehog{background:linear-gradient(145deg,#2d1a20,#503040,#3a2030)}
   @media(max-width:400px){.card-stage{max-width:290px}.btn-draw{padding:.8rem 1.8rem;min-width:190px}}
   @media(min-width:600px){.card-stage{max-width:360px}}
+
+  /* ── Footer ── */
+  .site-footer{position:relative;z-index:1;width:100%;max-width:480px;text-align:center;padding:.8rem 1rem 1.6rem;border-top:1px solid rgba(232,201,109,.12);margin-top:.5rem}
+  .site-footer p{font-family:'Lora',serif;font-size:.68rem;color:rgba(255,255,255,.28);letter-spacing:.1em;margin-bottom:.5rem}
+  .footer-links{display:flex;justify-content:center;gap:1.4rem}
+  .footer-links a{font-family:'Lora',serif;font-size:.68rem;color:rgba(232,201,109,.45);letter-spacing:.08em;text-decoration:none;transition:color .2s}
+  .footer-links a:hover{color:rgba(232,201,109,.9)}
+
+  /* ── Privacy Policy Modal ── */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,5,30,.82);backdrop-filter:blur(4px);z-index:10000;align-items:center;justify-content:center;padding:1.5rem}
+  .modal-overlay.open{display:flex}
+  .modal-box{background:linear-gradient(160deg,#1e1245,#2d1b5e);border:1px solid rgba(232,201,109,.3);border-radius:18px;padding:2rem 1.8rem 1.6rem;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;position:relative;box-shadow:0 0 60px rgba(100,60,180,.35)}
+  .modal-box h2{font-family:'Playfair Display',serif;font-size:1.1rem;color:var(--gold-light);letter-spacing:.08em;margin-bottom:1.1rem;text-align:center}
+  .modal-box p,.modal-box li{font-family:'Lora',serif;font-size:.78rem;color:rgba(255,255,255,.75);line-height:1.75;margin-bottom:.75rem}
+  .modal-box h3{font-family:'Playfair Display',serif;font-size:.85rem;color:rgba(232,201,109,.8);margin:.9rem 0 .35rem;letter-spacing:.06em}
+  .modal-box ul{padding-left:1.2rem;margin-bottom:.75rem}
+  .modal-close{display:block;margin:1.2rem auto 0;padding:.55rem 2rem;font-family:'Playfair Display',serif;font-size:.82rem;letter-spacing:.1em;color:var(--deep);background:linear-gradient(135deg,#f5e4a0,#e8c96d);border:none;border-radius:50px;cursor:pointer;transition:opacity .2s}
+  .modal-close:hover{opacity:.85}
 </style>
 </head>
 <body>
@@ -200,6 +218,44 @@
   </div>
   <button class="btn-draw" id="drawBtn" onclick="handleDraw()">✦ Draw Your Daily Oracle ✦</button>
   <div class="ad-space">AD SPACE · 320×50</div>
+</div>
+
+<footer class="site-footer">
+  <p>© 2026 Animal Oracle. All rights reserved.</p>
+  <nav class="footer-links">
+    <a href="#" onclick="openPrivacy();return false;">Privacy Policy</a>
+    <a href="mailto:your-email@example.com">Contact</a>
+  </nav>
+</footer>
+
+<!-- Privacy Policy Modal -->
+<div class="modal-overlay" id="privacyModal" onclick="if(event.target===this)closePrivacy()">
+  <div class="modal-box">
+    <h2>Privacy Policy</h2>
+    <p>Last updated: April 2, 2026</p>
+    <p>Animal Oracle ("we", "our", or "us") operates this website. This page explains how we handle information when you use our service.</p>
+
+    <h3>Information We Collect</h3>
+    <p>We do not collect personally identifiable information. We use browser <strong>localStorage</strong> solely to remember your daily card draw so the experience resets correctly each day. No data is sent to our servers.</p>
+
+    <h3>Cookies &amp; Third-Party Services</h3>
+    <p>This site may use third-party advertising services (including <strong>Google AdSense</strong>) and analytics tools (including <strong>Google Analytics</strong>). These services may place cookies on your device to personalise ads and measure site traffic. Google's use of advertising cookies enables it and its partners to serve ads based on your visit to this site and/or other sites on the internet.</p>
+    <ul>
+      <li>You may opt out of personalised advertising by visiting <a href="https://www.google.com/settings/ads" target="_blank" rel="noopener" style="color:rgba(232,201,109,.8)">Google Ads Settings</a>.</li>
+      <li>You may opt out of Google Analytics by installing the <a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener" style="color:rgba(232,201,109,.8)">Google Analytics Opt-out Browser Add-on</a>.</li>
+    </ul>
+
+    <h3>Children's Privacy</h3>
+    <p>This service is not directed to children under 13. We do not knowingly collect personal data from children.</p>
+
+    <h3>Changes to This Policy</h3>
+    <p>We may update this policy from time to time. Continued use of the site after changes constitutes acceptance of the revised policy.</p>
+
+    <h3>Contact</h3>
+    <p>If you have any questions about this Privacy Policy, please contact us at <a href="mailto:your-email@example.com" style="color:rgba(232,201,109,.8)">your-email@example.com</a>.</p>
+
+    <button class="modal-close" onclick="closePrivacy()">Close</button>
+  </div>
 </div>
 
 <script>
@@ -429,6 +485,17 @@ function handleDraw() {
     }, 6000);
   }
 }
+
+// ─── Privacy Modal ──────────────────────────────────────────────
+function openPrivacy() {
+  document.getElementById('privacyModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closePrivacy() {
+  document.getElementById('privacyModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePrivacy(); });
 </script>
 </body>
 </html>
