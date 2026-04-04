@@ -291,18 +291,18 @@
 <script>
 // ─── Oracle Images ─────────────────────────────────────────────
 const IMAGES = [
-  'スクリーンショット 2026-04-02 13.12.15.png',
-  'スクリーンショット 2026-04-02 13.12.27.png',
-  'スクリーンショット 2026-04-02 13.12.36.png',
-  'スクリーンショット 2026-04-02 13.12.48.png',
-  'スクリーンショット 2026-04-02 13.14.00.png',
-  'スクリーンショット 2026-04-02 13.15.05.png',
-  'lucid-origin_Luminous_Firefly_光るホタル_imagine_prompt_A_glowing_firefly_inside_a_delic-0.jpg',
-  'lucid-origin_imagine_prompt_A_hedgehog_with_glowing_crystals_instead_of_quills_carrying_a_tin-0.jpg',
-  'lucid-origin_imagine_prompt_A_small_brave_lion_cub_with_a_mane_made_of_sunflower_petals_stand-0.jpg',
-  'lucid-origin_Eternal_Turtle_永遠のウミガメ_imagine_prompt_An_ancient_sea_turtle_with_a-0.jpg',
-  'lucid-origin_Guardian_Wolf_守護のオオカミ_imagine_prompt_A_noble_white_wolf_with_blue_-0.jpg',
-  'lucid-origin_Wisdom_Crow_知恵のカラス_imagine_prompt_A_glossy_crow_holding_a_silver_key-0.jpg'
+  'card-1.png',
+  'card-2.png',
+  'card-3.png',
+  'card-4.png',
+  'card-5.png',
+  'card-6.png',
+  'card-firefly.jpg',
+  'card-hedgehog.jpg',
+  'card-lion.jpg',
+  'card-turtle.jpg',
+  'card-wolf.jpg',
+  'card-crow.jpg'
 ];
 let lastImageIdx = null;
 function pickImage() {
@@ -483,8 +483,10 @@ function startShufflePhase() {
     return sc;
   });
 
-  // Parallax tilt on mouse/touch
+  // Parallax tilt on mouse/touch — enabled only during select phase
+  overlay._tiltEnabled = false;
   const tiltHandler = (e) => {
+    if (!overlay._tiltEnabled) return;
     const ex = e.touches ? e.touches[0].clientX : e.clientX;
     const ey = e.touches ? e.touches[0].clientY : e.clientY;
     const mx = (ex / window.innerWidth  - 0.5) * 20;
@@ -500,10 +502,34 @@ function startShufflePhase() {
     document.removeEventListener('touchmove', tiltHandler);
   };
 
+  // Dynamic shuffle: start after initial spread, randomize positions every 1.8s
+  const shuffleStartTimer = setTimeout(() => {
+    function randomizePositions() {
+      cards.forEach(sc => {
+        const newX = (Math.random() - 0.5) * sx * 2.2;
+        const newY = (Math.random() - 0.5) * sy * 2.8;
+        const newR = (Math.random() - 0.5) * 60;
+        sc.style.transition = 'transform 1.5s ease-in-out';
+        sc.style.transform   = `translate(${newX}px,${newY}px) rotate(${newR}deg)`;
+        sc._p = {x: newX, y: newY, r: newR};
+      });
+    }
+    randomizePositions();
+    overlay._shuffleInterval = setInterval(randomizePositions, 1800);
+  }, 1100);
+  overlay._shuffleStartTimer = shuffleStartTimer;
+
   setTimeout(() => enterSelectPhase(overlay, cards, statusEl), 8000);
 }
 
 function enterSelectPhase(overlay, cards, statusEl) {
+  // Stop the dynamic shuffle
+  if (overlay._shuffleInterval)   { clearInterval(overlay._shuffleInterval);  overlay._shuffleInterval = null; }
+  if (overlay._shuffleStartTimer) { clearTimeout(overlay._shuffleStartTimer); overlay._shuffleStartTimer = null; }
+
+  // Enable parallax tilt now that cards are selectable
+  overlay._tiltEnabled = true;
+
   statusEl.textContent = 'Select your destiny...';
   overlay.classList.add('select-mode');
   cards.forEach(sc => {
