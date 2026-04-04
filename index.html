@@ -127,6 +127,8 @@
   .bg-rabbit {background:linear-gradient(145deg,#3a1a2d,#6b2a55,#4a1a3a)}
   .bg-raven  {background:linear-gradient(145deg,#151520,#252535,#1a1a28)}
   .bg-ffox   {background:linear-gradient(145deg,#3d2510,#7a4520,#4a2e10)}
+  .bg-crow   {background:linear-gradient(145deg,#151520,#252535,#1a1a28)}
+  .bg-lion   {background:linear-gradient(145deg,#3d2800,#7a5000,#4a3400)}
   .bg-turtle {background:linear-gradient(145deg,#0f2d2a,#1a4a40,#0f3530)}
   .bg-phoenix{background:linear-gradient(145deg,#3d1010,#7a2020,#4a1515)}
   .bg-dolphin{background:linear-gradient(145deg,#102a3d,#1a4a6b,#10354a)}
@@ -289,52 +291,28 @@
 </div>
 
 <script>
-// ─── Oracle Images ─────────────────────────────────────────────
-const IMAGES = [
-  'card-1.png',
-  'card-2.png',
-  'card-3.png',
-  'card-4.png',
-  'card-5.png',
-  'card-6.png',
-  'card-firefly.jpg',
-  'card-hedgehog.jpg',
-  'card-lion.jpg',
-  'card-turtle.jpg',
-  'card-wolf.jpg',
-  'card-crow.jpg'
-];
-let lastImageIdx = null;
-function pickImage() {
-  let idx;
-  do { idx = Math.floor(Math.random() * IMAGES.length); }
-  while (IMAGES.length > 1 && idx === lastImageIdx);
-  lastImageIdx = idx;
-  return IMAGES[idx];
-}
-
 // ─── 20 Cards ──────────────────────────────────────────────────
 const CARDS = [
-{id:1, title:"The Stellar Owl",      bg:"bg-owl",      message:"Trust your intuition. Wisdom often speaks in whispers."},
-{id:2, title:"The Fox of Secrets",   bg:"bg-fox",      message:"Curiosity opens doors others walk past. Follow the spark within you."},
-{id:3, title:"The Bear of Stars",    bg:"bg-bear",     message:"Rest is sacred. Your deepest strength is renewed in stillness."},
-{id:4, title:"The Butterfly Oracle", bg:"bg-butterfly",message:"Change is your birthright. The becoming is as beautiful as the arrival."},
-{id:5, title:"The Moon Cat",         bg:"bg-cat",      message:"Walk softly through this day. Magic is drawn to those who listen."},
-{id:6, title:"The Golden Deer",      bg:"bg-deer",     message:"You are exactly where you need to be. Move with grace, not urgency."},
-{id:7, title:"The Dream Rabbit",     bg:"bg-rabbit",   message:"Your dreams are seeds. Plant them with belief and water them with patience."},
-{id:8, title:"The Storm Raven",      bg:"bg-raven",    message:"After every storm, something new takes root. Hold on a little longer."},
-{id:9, title:"The Ember Fox",        bg:"bg-ffox",     message:"Your cleverness is a rare gift. Use it with warmth and kindness."},
-{id:10,title:"The Cosmic Turtle",    bg:"bg-turtle",   message:"Slow and steady reveals the deeper path. Patience is its own power."},
-{id:11,title:"The Ember Phoenix",    bg:"bg-phoenix",  message:"You rise from what you thought would break you. This is how you were made."},
-{id:12,title:"The Pearl Dolphin",    bg:"bg-dolphin",  message:"Joy is not a reward for hard work. It is your most natural state of being."},
-{id:13,title:"The Velvet Mouse",     bg:"bg-mouse",    message:"Even the smallest steps move mountains over time. You are doing enough."},
-{id:14,title:"The Silver Wolf",      bg:"bg-wolf",     message:"Trust your instincts and your people. Love and loyalty are your truest north."},
-{id:15,title:"The Lantern Firefly",  bg:"bg-firefly",  message:"Your light matters more than you will ever know. Keep shining, even softly."},
-{id:16,title:"The Amber Bee",        bg:"bg-bee",      message:"Diligence and sweetness are not opposites. Both are yours to carry with pride."},
-{id:17,title:"The Tide Seal",        bg:"bg-seal",     message:"Release what you cannot control to the waves. Then float, freely and fully."},
-{id:18,title:"The Crystal Frog",     bg:"bg-frog",     message:"Transformation begins in the stillness between moments. You are already changing."},
-{id:19,title:"The Sage Elephant",    bg:"bg-elephant", message:"Memory and wisdom walk hand in hand. Honor all that you have carried."},
-{id:20,title:"The Wish Hedgehog",    bg:"bg-hedgehog", message:"Protect your softness — gentleness is one of the most powerful things you own."}
+{id:1,  title:"The Stellar Owl",      bg:"bg-owl",      image:"StellarOwl.png",    message:"Wisdom is not found in the noise of the day, but in the quiet spaces of the night. Trust the silent knowing within you."},
+{id:2,  title:"The Fox of Secrets",   bg:"bg-fox",      image:"FOX.png",           message:"Not all paths are straight, and not all truths are obvious. Let your curiosity reveal the hidden magic around you."},
+{id:3,  title:"The Bear of Stars",    bg:"bg-bear",     image:"Barie.jpg",         message:"Strength is not always about pushing forward; sometimes it is the courage to rest. Let the universe hold you while you heal."},
+{id:4,  title:"The Butterfly Oracle", bg:"bg-butterfly",image:null,                message:"You are no longer who you once were, yet you are exactly who you are meant to be. Embrace the beauty of your own transformation."},
+{id:5,  title:"The Moon Cat",         bg:"bg-cat",      image:"TheSetry.png",      message:"Walk softly through the shadows, for they only exist to show you the light. Your intuition is your greatest compass."},
+{id:6,  title:"The Golden Deer",      bg:"bg-deer",     image:"DEER.png",          message:"Grace is found in moving with the rhythm of nature, not against it. Step gently, and the path will illuminate before you."},
+{id:7,  title:"The Tide Seal",        bg:"bg-seal",     image:"SEALION.png",       message:"Do not fight the currents of change. Float upon the waves of uncertainty, and they will carry you exactly where you need to go."},
+{id:8,  title:"The Cosmic Rabbit",    bg:"bg-rabbit",   image:null,                message:"Leap into the unknown with a joyful heart. The universe catches those who dare to dream playfully."},
+{id:9,  title:"The Wisdom Crow",      bg:"bg-crow",     image:"WisdomCrow.jpg",    message:"The universe speaks in symbols, shadows, and echoes. Look closely, for a message is waiting for you in the ordinary."},
+{id:10, title:"The Eternal Turtle",   bg:"bg-turtle",   image:"EternalTurtle.jpg", message:"There is no rush to reach the finish line. True progress is made step by step, carrying your home within your heart."},
+{id:11, title:"The Dawn Phoenix",     bg:"bg-phoenix",  image:"PHOENIX.png",       message:"From the ashes of your past challenges, a brilliant new beginning is rising. Allow yourself to be reborn in the light."},
+{id:12, title:"The Dreamy Dolphin",   bg:"bg-dolphin",  image:null,                message:"Joy is a frequency that heals the soul. Dive deep into what makes you smile, and let your spirit play."},
+{id:13, title:"The Star Mouse",       bg:"bg-mouse",    image:null,                message:"No light is too small to guide someone through the dark. Your quiet kindness holds more power than you know."},
+{id:14, title:"The Guardian Wolf",    bg:"bg-wolf",     image:"GuardianWolf.jpg",  message:"You are protected by unseen forces and guided by ancient instincts. Stand in your truth, and your pack will find you."},
+{id:15, title:"The Luminous Firefly", bg:"bg-firefly",  image:"LummonFirefly.jpg", message:"Even in the darkest forest, you hold your own light. Do not wait for the sun; shine exactly where you are."},
+{id:16, title:"The Nectar Bee",       bg:"bg-bee",      image:null,                message:"Sweetness is the reward for diligent devotion. Trust that your daily efforts are weaving a golden future."},
+{id:17, title:"The Mystic Frog",      bg:"bg-frog",     image:null,                message:"Transformation begins in the stillness between moments. Cleanse your spirit and leap toward your next chapter."},
+{id:18, title:"The Gentle Elephant",  bg:"bg-elephant", image:null,                message:"Some memories are heavy, but you have the strength to carry them with grace. Remember your roots, but walk forward."},
+{id:19, title:"The Hedgehog Guide",   bg:"bg-hedgehog", image:"Verrilgn.jpg",      message:"It is safe to soften your edges. You do not need to defend your heart against those who truly wish to love you."},
+{id:20, title:"The Royal Lion",       bg:"bg-lion",     image:null,                message:"True sovereignty comes from a heart of gold, not a crown of power. Roar with compassion, and the world will listen."}
 ];
 
 // ─── Cursor sparkles ───────────────────────────────────────────
@@ -387,7 +365,7 @@ function applyDailyLimit() {
 
 // ─── App State ─────────────────────────────────────────────────
 let isFlipped = false, isAnimating = false, lastCardId = null;
-let chosenCard = null, chosenImageSrc = null;
+let chosenCard = null;
 
 function pickCard() {
   let card;
@@ -397,17 +375,42 @@ function pickCard() {
   return card;
 }
 
-function populateCard(card, imageSrc) {
+const CARD_SYMBOLS = {
+  'bg-owl':'🦉','bg-fox':'🦊','bg-bear':'🐻','bg-butterfly':'🦋','bg-cat':'🐱',
+  'bg-deer':'🦌','bg-seal':'🦭','bg-rabbit':'🐇','bg-crow':'🐦‍⬛','bg-turtle':'🐢',
+  'bg-phoenix':'🔥','bg-dolphin':'🐬','bg-mouse':'🐭','bg-wolf':'🐺','bg-firefly':'✨',
+  'bg-bee':'🐝','bg-frog':'🐸','bg-elephant':'🐘','bg-hedgehog':'🦔','bg-lion':'🦁'
+};
+
+function makePlaceholder(card) {
+  const ph = document.createElement('div');
+  ph.style.cssText = 'width:85%;aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle,rgba(232,201,109,.15) 0%,rgba(100,60,180,.1) 60%,transparent 100%);border:1px solid rgba(232,201,109,.25)';
+  const sym = document.createElement('span');
+  sym.style.cssText = 'font-size:clamp(3rem,14vw,4.5rem);filter:drop-shadow(0 0 16px rgba(232,201,109,.6))';
+  sym.textContent = CARD_SYMBOLS[card.bg] || '✦';
+  ph.appendChild(sym);
+  return ph;
+}
+
+function populateCard(card) {
   const inner = document.getElementById('cardFrontInner');
   CARDS.forEach(c => inner.classList.remove(c.bg));
   inner.classList.add(card.bg);
   document.getElementById('cardNumber').textContent = `No. ${String(card.id).padStart(2,'0')}`;
   const svgEl = document.getElementById('animalSvg');
-  const img = document.createElement('img');
-  img.src = imageSrc || pickImage();
-  img.alt = card.title;
   svgEl.innerHTML = '';
-  svgEl.appendChild(img);
+  if (card.image) {
+    const img = document.createElement('img');
+    img.alt = card.title;
+    const ph = makePlaceholder(card);
+    ph.style.display = 'none';
+    svgEl.appendChild(img);
+    svgEl.appendChild(ph);
+    img.onerror = () => { img.style.display = 'none'; ph.style.display = 'flex'; };
+    img.src = card.image;
+  } else {
+    svgEl.appendChild(makePlaceholder(card));
+  }
   document.getElementById('cardTitleFront').textContent = card.title;
   document.getElementById('cardMessage').textContent = card.message;
 }
@@ -417,11 +420,10 @@ function handleDraw() {
   if (isAnimating || loadDaily()) return;
   isAnimating = true;
 
-  // Commit card + image NOW — prevents reload cheating
+  // Commit card NOW — prevents reload cheating
   chosenCard = pickCard();
-  chosenImageSrc = pickImage();
   saveDaily(chosenCard.id);
-  populateCard(chosenCard, chosenImageSrc);
+  populateCard(chosenCard);
 
   const btn = document.getElementById('drawBtn');
   btn.disabled = true;
@@ -553,10 +555,22 @@ function onCardSelected(sc, overlay, allCards) {
   const frontEl = sc.querySelector('.scard-front-face');
   const imgWrap = document.createElement('div');
   imgWrap.className = 'scard-front-img';
-  const imgEl = document.createElement('img');
-  imgEl.src = chosenImageSrc;
-  imgEl.alt = chosenCard.title;
-  imgWrap.appendChild(imgEl);
+  if (chosenCard.image) {
+    const imgEl = document.createElement('img');
+    imgEl.alt = chosenCard.title;
+    const phEl = document.createElement('div');
+    phEl.style.cssText = 'width:100%;aspect-ratio:1;display:none;align-items:center;justify-content:center;font-size:2.2rem';
+    phEl.textContent = CARD_SYMBOLS[chosenCard.bg] || '✦';
+    imgWrap.appendChild(imgEl);
+    imgWrap.appendChild(phEl);
+    imgEl.onerror = () => { imgEl.style.display = 'none'; phEl.style.display = 'flex'; };
+    imgEl.src = chosenCard.image;
+  } else {
+    const phEl = document.createElement('div');
+    phEl.style.cssText = 'width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:2.2rem';
+    phEl.textContent = CARD_SYMBOLS[chosenCard.bg] || '✦';
+    imgWrap.appendChild(phEl);
+  }
   const textDiv = document.createElement('div');
   textDiv.className = 'scard-front-text';
   textDiv.innerHTML = `<div class="scard-front-title">${chosenCard.title}</div><div class="scard-front-msg">${chosenCard.message}</div>`;
