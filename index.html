@@ -27,13 +27,7 @@
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital@0;1&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{--gold:#e8c96d;--gold-light:#f5e4a0;--deep:#1a1035}
-  body{min-height:100vh;background:#050a15;font-family:'Lora',Georgia,serif;color:#f0e8ff;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 1rem;overflow-x:hidden}
-
-  /* ── Velvet background ── */
-  #velvet-background{position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(155deg,#040810 0%,#060d1a 40%,#070e1c 75%,#050b16 100%)}
-  #velvet-background::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='5' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23v)'/%3E%3C/svg%3E");background-size:160px 160px;opacity:.13;mix-blend-mode:soft-light;animation:velvetDrift 25s ease-in-out infinite}
-  @keyframes velvetDrift{0%,100%{background-position:0 0}50%{background-position:18px 9px}}
-  #velvet-background::after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 52% 44% at calc(var(--mx,50) * 1%) calc(var(--my,35) * 1%),rgba(62,48,118,.58) 0%,rgba(32,24,75,.2) 38%,transparent 58%),radial-gradient(ellipse 88% 75% at calc(var(--mx,50) * 1%) calc(var(--my,35) * 1%),rgba(22,38,88,.32) 0%,rgba(10,18,50,.1) 52%,transparent 72%),radial-gradient(ellipse 100% 100% at 50% 50%,transparent 45%,rgba(2,4,10,.55) 100%)}
+  body{min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#2d1b5e 0%,#1a1035 55%,#0d0820 100%);font-family:'Lora',Georgia,serif;color:#f0e8ff;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 1rem;overflow-x:hidden}
   .app-container{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:480px}
   .header{text-align:center;margin-bottom:1.8rem}
   .header h1{font-family:'Playfair Display',serif;font-size:clamp(1.9rem,5vw,2.6rem);font-weight:600;letter-spacing:.18em;background:linear-gradient(135deg,#f5e4a0,#e8c96d,#c8a83a,#f5e4a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.4rem}
@@ -201,7 +195,6 @@
 </style>
 </head>
 <body>
-<div id="velvet-background" aria-hidden="true"></div>
 
 <div class="app-container">
   <div class="header">
@@ -334,44 +327,6 @@ const CARDS = [
 {id:34, title:"The Star-Bearing Penguin",bg:"bg-penguin", image:"Penguin.jpg",       message:"Though the world may feel cold at times, you carry a piece of the sun within you. You are never truly alone."}
 ];
 
-// ─── Velvet sheen — follows mouse like light on fabric ─────────
-const velvetBg = document.getElementById('velvet-background');
-let vTx = 50, vTy = 35, vCx = 50, vCy = 35;
-document.addEventListener('mousemove', e => {
-  vTx = (e.clientX / window.innerWidth)  * 100;
-  vTy = (e.clientY / window.innerHeight) * 100;
-});
-(function animateVelvet() {
-  vCx += (vTx - vCx) * 0.028;
-  vCy += (vTy - vCy) * 0.028;
-  velvetBg.style.setProperty('--mx', vCx.toFixed(2));
-  velvetBg.style.setProperty('--my', vCy.toFixed(2));
-  requestAnimationFrame(animateVelvet);
-})();
-
-// ─── Random velvet glints — fabric catching light ──────────────
-const GLINT_COUNT = 7;
-function cycleGlint(el) {
-  const x = Math.random() * 85 + 5;
-  const y = Math.random() * 80 + 5;
-  const w = Math.random() * 22 + 10;
-  const h = w * (Math.random() * 0.45 + 0.3);
-  el.style.cssText = `position:absolute;left:${x}%;top:${y}%;width:${w}%;height:${h}%;border-radius:50%;pointer-events:none;opacity:0;transition:opacity ${(Math.random()*2+2).toFixed(1)}s ease;background:radial-gradient(ellipse,rgba(58,72,148,.24) 0%,rgba(28,40,100,.08) 50%,transparent 70%)`;
-  setTimeout(() => {
-    el.style.opacity = '1';
-    const hold = Math.random() * 4000 + 2500;
-    setTimeout(() => {
-      el.style.opacity = '0';
-      const wait = Math.random() * 3000 + 1500;
-      setTimeout(() => cycleGlint(el), wait + 2500);
-    }, hold);
-  }, 80);
-}
-for (let i = 0; i < GLINT_COUNT; i++) {
-  const el = document.createElement('div');
-  velvetBg.appendChild(el);
-  setTimeout(() => cycleGlint(el), i * 900 + Math.random() * 600);
-}
 
 // ─── Daily Limit ────────────────────────────────────────────────
 const LS_KEY = 'animalOracle_daily';
