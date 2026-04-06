@@ -89,7 +89,7 @@
   .front-corner.tr{top:24px;right:10px}
   .front-corner.bl{bottom:4px;left:10px}
   .front-corner.br{bottom:4px;right:10px}
-  .card-text-area{background:rgba(0,0,0,.38);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-top:1px solid rgba(232,201,109,.2);padding:.9rem 1.1rem 1rem;text-align:center;position:relative;z-index:2}
+  .card-text-area{background:rgba(0,0,0,.46);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-top:1px solid rgba(232,201,109,.2);padding:.9rem 1.1rem 1rem;text-align:center;position:relative;z-index:2}
   .card-title-front{font-family:'Playfair Display',serif;font-size:clamp(1rem,3.2vw,1.2rem);font-weight:600;color:var(--gold-light);letter-spacing:.16em;margin-bottom:.3rem;text-shadow:0 0 16px rgba(232,201,109,.6)}
   .card-divider{display:flex;align-items:center;gap:6px;justify-content:center;margin:.3rem 0;color:rgba(232,201,109,.5);font-size:.55rem;letter-spacing:.3em}
   .card-message{font-family:'Lora',serif;font-weight:300;font-size:clamp(.68rem,2.2vw,.78rem);color:rgba(255,255,255,.88);line-height:1.65;text-shadow:0 1px 6px rgba(0,0,0,.4);letter-spacing:.02em}
@@ -311,7 +311,7 @@
 
   // ── Grid setup ───────────────────────────────────────────────
   // N×N fluid grid + 1-cell boundary on each side
-  const N  = mobile ? 48 : 76;
+  const N  = mobile ? 38 : 76; // mobile: smaller grid → less heat
   const N2 = N + 2;
   const SZ = N2 * N2;
   const IX = (i,j) => i + N2*j;
@@ -327,13 +327,13 @@
   const divg  = new Float32Array(SZ); // divergence
 
   // ── Simulation constants ──────────────────────────────────────
-  const VISC   = 0.000008; // velocity viscosity  (low → more swirls)
-  const DIFF   = 0.00022;  // density diffusion   (smoke spreading)
-  const DT     = 0.15;     // time step
-  const ITER   = 8;        // Gauss-Seidel iterations
-  const DISSIP = 0.9968;   // per-frame density dissipation (slower → denser sea)
-  const BUOY   = -0.0025;  // upward buoyancy (negative y = up in canvas)
-  const VDAMP  = 0.9995;   // very slow velocity damping → vortex traces persist
+  const VISC   = 0.000008;          // velocity viscosity  (low → more swirls)
+  const DIFF   = 0.00028;           // slightly higher diffusion → silkier spread
+  const DT     = 0.15;              // time step
+  const ITER   = mobile ? 6 : 8;   // mobile: fewer iterations → less CPU heat
+  const DISSIP = 0.9970;            // fine-tuned decay for smooth highlight fade
+  const BUOY   = -0.0025;           // upward buoyancy
+  const VDAMP  = 0.9997;            // even slower damping → deep-sea curtain inertia
 
   // ── Perlin noise (for density injection) ─────────────────────
   const _pp = new Uint8Array(512);
@@ -591,19 +591,23 @@
     H=canvas.height=window.innerHeight;
   }
 
-  // ── Main loop ─────────────────────────────────────────────────
-  function tick(){
+  // ── Main loop — 30 fps cap on mobile to reduce heat ─────────────
+  const MIN_MS = mobile ? 33 : 0; // 30fps on mobile, uncapped on desktop
+  let lastT = 0;
+  function tick(now){
+    requestAnimationFrame(tick);
+    if(now - lastT < MIN_MS) return;
+    lastT = now;
     for(let c=0;c<3;c++) curC[c]+=(tgtC[c]-curC[c])*0.012;
     vel_step();
     dens_step();
     render();
-    requestAnimationFrame(tick);
   }
 
   window.addEventListener('resize',resize);
   resize();
   fillInitial();
-  tick();
+  requestAnimationFrame(tick);
 
   window.triggerCardSmoke=function(bgClass){
     tgtC=[...(COLOR_MAP[bgClass]||DEF)];
