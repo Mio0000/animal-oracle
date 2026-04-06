@@ -354,8 +354,8 @@
   let prevMX=-1, prevMY=-1;
   function addVortex(x,y,dx,dy){
     const s=Math.sqrt(dx*dx+dy*dy);
-    if(s<1) return;
-    vortices.push({x,y,str:Math.min(s*0.6,7),age:0,life:90+Math.random()*60});
+    if(s<0.3) return;
+    vortices.push({x,y,str:Math.min(s*1.2,12),age:0,life:120+Math.random()*80});
   }
   function vortexVel(px,py){
     let vx=0,vy=0;
@@ -363,9 +363,9 @@
       const t=1-v.age/v.life;
       const ex=px-v.x,ey=py-v.y;
       const d2=ex*ex+ey*ey;
-      if(d2<180*180&&d2>1){
+      if(d2<220*220&&d2>1){
         const d=Math.sqrt(d2);
-        const inf=(1-d/180)*t*v.str*0.015;
+        const inf=(1-d/220)*t*v.str*0.045;
         vx+=(-ey/d)*inf; vy+=(ex/d)*inf;
       }
     }
@@ -441,6 +441,17 @@
     }
 
     for(let c=0;c<3;c++) curC[c]+=(tgtC[c]-curC[c])*0.015;
+
+    // Perturb existing trail history with vortices
+    if(vortices.length>0){
+      for(const s of streams){
+        for(let j=0;j<s.hist.length;j+=2){
+          const h=s.hist[j];
+          const [wvx,wvy]=vortexVel(h.x,h.y);
+          h.x+=wvx*2.5; h.y+=wvy*2.5;
+        }
+      }
+    }
 
     for(let si=0;si<streams.length;si++){
       const s=streams[si];
