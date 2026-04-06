@@ -27,10 +27,10 @@
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital@0;1&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{--gold:#e8c96d;--gold-light:#f5e4a0;--deep:#1a1035}
-  body{min-height:100vh;background:#0a1525;font-family:'Lora',Georgia,serif;color:#f0e8ff;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 1rem;overflow-x:hidden}
+  body{min-height:100vh;background:#050a15;font-family:'Lora',Georgia,serif;color:#f0e8ff;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 1rem;overflow-x:hidden}
 
   /* ── Velvet background ── */
-  #velvet-background{position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(135deg,#0a1a2d 0%,#0d1f38 45%,#141e30 100%)}
+  #velvet-background{position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(135deg,#070f1e 0%,#0a1628 45%,#0d1a2e 100%)}
   #velvet-background::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23v)'/%3E%3C/svg%3E");background-size:280px 280px;opacity:.07;mix-blend-mode:overlay}
   #velvet-background::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 72% 62% at calc(var(--mx,50) * 1%) calc(var(--my,35) * 1%),rgba(28,55,110,.42) 0%,rgba(14,28,65,.18) 42%,transparent 68%);pointer-events:none}
   .app-container{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:480px}
@@ -38,7 +38,7 @@
   .header h1{font-family:'Playfair Display',serif;font-size:clamp(1.9rem,5vw,2.6rem);font-weight:600;letter-spacing:.18em;background:linear-gradient(135deg,#f5e4a0,#e8c96d,#c8a83a,#f5e4a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.4rem}
   .header .subtitle{font-family:'Lora',serif;font-weight:300;font-size:.72rem;color:rgba(232,201,109,.65);letter-spacing:.22em;text-transform:uppercase}
   .header .ornament{display:block;font-size:1rem;color:var(--gold);opacity:.7;margin:.5rem 0;letter-spacing:.3em}
-  .card-stage{width:100%;max-width:340px;aspect-ratio:2/3.4;position:relative;perspective:1200px;margin-bottom:1rem;filter:drop-shadow(0 0 32px rgba(232,201,109,.18));transition:filter .4s;cursor:pointer}
+  .card-stage{width:100%;max-width:340px;aspect-ratio:2/3.4;position:relative;z-index:5;perspective:1200px;margin-bottom:1rem;filter:drop-shadow(0 0 32px rgba(232,201,109,.18));transition:filter .4s;cursor:pointer}
   .card-stage.glowing{animation:stageBreath .7s ease-in-out infinite alternate}
   @keyframes stageBreath{from{filter:drop-shadow(0 0 40px rgba(232,201,109,.4)) drop-shadow(0 0 70px rgba(180,120,255,.2))}to{filter:drop-shadow(0 0 70px rgba(232,201,109,.7)) drop-shadow(0 0 120px rgba(180,120,255,.45))}}
   .card-inner{width:100%;height:100%;position:relative;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.4,0,.2,1);border-radius:18px}
@@ -89,13 +89,6 @@
   .animal-svg{width:85%;display:flex;align-items:center;justify-content:center;filter:drop-shadow(0 6px 20px rgba(0,0,0,.3));animation:animalFloat 3.5s ease-in-out infinite;overflow:hidden;border-radius:10px}
   .animal-svg img{width:100%;height:auto;display:block;border-radius:10px}
   @keyframes animalFloat{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-7px) scale(1.04)}}
-  .particle{position:absolute;width:4px;height:4px;border-radius:50%;background:rgba(255,255,255,.4);animation:particleDrift 4s ease-in-out infinite}
-  .particle:nth-child(1){top:20%;left:15%;animation-delay:0s}
-  .particle:nth-child(2){top:35%;right:12%;animation-delay:.8s;width:3px;height:3px}
-  .particle:nth-child(3){top:65%;left:18%;animation-delay:1.6s;width:5px;height:5px}
-  .particle:nth-child(4){top:55%;right:15%;animation-delay:2.4s}
-  .particle:nth-child(5){top:78%;left:35%;animation-delay:3.2s;width:3px;height:3px}
-  @keyframes particleDrift{0%,100%{transform:translate(0,0) scale(1);opacity:.4}33%{transform:translate(6px,-8px) scale(1.2);opacity:.8}66%{transform:translate(-4px,4px) scale(.8);opacity:.3}}
   .front-corner{position:absolute;font-size:.55rem;color:rgba(255,255,255,.4);letter-spacing:.05em}
   .front-corner.tl{top:24px;left:10px}
   .front-corner.tr{top:24px;right:10px}
@@ -111,7 +104,7 @@
   .status-text{font-family:'Lora',serif;font-style:italic;font-size:.8rem;color:rgba(232,201,109,.6);letter-spacing:.12em;text-align:center;min-height:1.2em;margin-bottom:1.2rem;animation:statusPulse 1.5s ease-in-out infinite}
   .status-text.hidden{opacity:0;animation:none}
   @keyframes statusPulse{0%,100%{opacity:.5}50%{opacity:1}}
-  .btn-draw{position:relative;padding:.9rem 2.4rem;font-family:'Playfair Display',serif;font-size:clamp(1rem,3vw,1.15rem);font-weight:600;letter-spacing:.18em;color:var(--deep);background:linear-gradient(135deg,#f5e4a0,#e8c96d,#d4a83a,#e8c96d);background-size:200% 200%;border:none;border-radius:50px;cursor:pointer;transition:transform .3s,box-shadow .3s;box-shadow:0 4px 20px rgba(232,201,109,.4),0 2px 8px rgba(0,0,0,.3);animation:btnGradient 4s ease infinite;overflow:hidden;margin-bottom:2rem;min-width:220px}
+  .btn-draw{position:relative;z-index:10;padding:.9rem 2.4rem;font-family:'Playfair Display',serif;font-size:clamp(1rem,3vw,1.15rem);font-weight:600;letter-spacing:.18em;color:var(--deep);background:linear-gradient(135deg,#f5e4a0,#e8c96d,#d4a83a,#e8c96d);background-size:200% 200%;border:none;border-radius:50px;cursor:pointer;transition:transform .3s,box-shadow .3s;box-shadow:0 4px 20px rgba(232,201,109,.4),0 2px 8px rgba(0,0,0,.3);animation:btnGradient 4s ease infinite;overflow:hidden;margin-bottom:2rem;min-width:220px}
   @keyframes btnGradient{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
   @keyframes btnGlow{
     0%,100%{box-shadow:0 4px 20px rgba(232,201,109,.4),0 0 0 0 rgba(232,201,109,0),inset 0 0 0 rgba(255,255,255,0)}
@@ -186,13 +179,12 @@
   .scard-front-title{font-family:'Playfair Display',serif;font-size:.4rem;color:var(--gold-light);letter-spacing:.05em;font-weight:700}
   .scard-front-msg{font-family:'Lora',serif;font-style:italic;font-size:.34rem;color:rgba(255,255,255,.85);line-height:1.4;margin-top:.1rem;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
   .shuffle-status{position:fixed;bottom:18%;left:50%;transform:translateX(-50%);z-index:501;font-family:'Playfair Display',serif;font-style:italic;font-size:clamp(.9rem,3vw,1.1rem);color:rgba(232,201,109,.9);letter-spacing:.15em;text-align:center;pointer-events:none;text-shadow:0 0 20px rgba(232,201,109,.5);white-space:nowrap;animation:statusPulse 1.5s ease-in-out infinite}
-  #burstCanvas{position:fixed;inset:0;pointer-events:none;z-index:600;display:none}
 
   /* ── Footer ── */
   .site-footer{position:relative;z-index:1;width:100%;max-width:480px;text-align:center;padding:.8rem 1rem 1.6rem;border-top:1px solid rgba(232,201,109,.12);margin-top:.5rem}
   .site-footer p{font-family:'Lora',serif;font-size:.68rem;color:rgba(255,255,255,.28);letter-spacing:.1em;margin-bottom:.5rem}
   .footer-links{display:flex;justify-content:center;gap:1.4rem}
-  .footer-links a{font-family:'Lora',serif;font-size:.68rem;color:rgba(232,201,109,.45);letter-spacing:.08em;text-decoration:none;transition:color .2s}
+  .footer-links a{position:relative;z-index:10;font-family:'Lora',serif;font-size:.68rem;color:rgba(232,201,109,.45);letter-spacing:.08em;text-decoration:none;transition:color .2s}
   .footer-links a:hover{color:rgba(232,201,109,.9)}
 
   /* ── Privacy Policy Modal ── */
@@ -233,9 +225,7 @@
       <div class="card-face card-front" id="cardFront">
         <div class="card-front-inner" id="cardFrontInner">
           <div class="card-illustration" id="cardIllustration">
-            <div class="particle"></div><div class="particle"></div>
-            <div class="particle"></div><div class="particle"></div><div class="particle"></div>
-            <span class="front-corner tl">✦</span><span class="front-corner tr">✦</span>
+<span class="front-corner tl">✦</span><span class="front-corner tr">✦</span>
             <span class="front-corner bl">✧</span><span class="front-corner br">✧</span>
             <div class="card-number" id="cardNumber"></div>
             <div class="card-stars-top">✦ ✧ ✦</div>
@@ -262,7 +252,6 @@
 </div>
 
 <div id="shuffleOverlay" aria-hidden="true"></div>
-<canvas id="burstCanvas" aria-hidden="true"></canvas>
 
 <footer class="site-footer">
   <p>© 2026 Animal Oracle. All rights reserved.</p>
@@ -620,59 +609,10 @@ function onCardSelected(sc, overlay, allCards) {
   // Flip after arrival
   setTimeout(() => {
     sc.querySelector('.scard-flip').classList.add('flipped');
-    // Burst then reveal main card
-    setTimeout(() => {
-      fireBurst();
-      setTimeout(revealMainCard, 700);
-    }, 950);
+    setTimeout(revealMainCard, 950);
   }, 1050);
 }
 
-// ─── Gold Particle Burst ────────────────────────────────────────
-function fireBurst() {
-  const canvas = document.getElementById('burstCanvas');
-  canvas.style.display = 'block';
-  canvas.width  = window.innerWidth;
-  canvas.height = window.innerHeight;
-  const ctx = canvas.getContext('2d');
-  const cx = window.innerWidth  / 2;
-  const cy = window.innerHeight / 2;
-  const COLORS = ['#e8c96d','#f5e4a0','#ffffff','#d4b8ff','#ffd700','#fff0a0','#ffb8d4','#c8ffb8'];
-
-  const particles = Array.from({length: 100}, () => {
-    const angle = Math.random() * Math.PI * 2;
-    const speed = Math.random() * 11 + 4;
-    return {
-      x: cx, y: cy,
-      vx: Math.cos(angle) * speed,
-      vy: Math.sin(angle) * speed - 2.5,
-      r: Math.random() * 5 + 2,
-      color: COLORS[Math.floor(Math.random() * COLORS.length)],
-      alpha: 1,
-      decay: Math.random() * 0.018 + 0.011,
-      square: Math.random() < 0.3,
-    };
-  });
-
-  function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let alive = false;
-    particles.forEach(p => {
-      if (p.alpha <= 0) return;
-      alive = true;
-      p.x += p.vx; p.y += p.vy; p.vy += 0.28; p.alpha -= p.decay;
-      ctx.save();
-      ctx.globalAlpha = Math.max(0, p.alpha);
-      ctx.fillStyle = p.color;
-      if (p.square) ctx.fillRect(p.x - p.r * .6, p.y - p.r * .6, p.r * 1.2, p.r * 1.2);
-      else { ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2); ctx.fill(); }
-      ctx.restore();
-    });
-    if (alive) requestAnimationFrame(animate);
-    else canvas.style.display = 'none';
-  }
-  animate();
-}
 
 // ─── Reveal Main Card ──────────────────────────────────────────
 function revealMainCard() {
