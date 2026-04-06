@@ -195,7 +195,7 @@
 
   /* ── Smoke Canvas ── */
   /* z-index:0 → body背景より前、app-container(z:1)より後ろ = 紫背景エリアのみに表示 */
-  #smokeCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;filter:blur(9px)}
+  #smokeCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;filter:blur(14px)}
 </style>
 </head>
 <body>
@@ -303,33 +303,59 @@
 </div>
 
 <script>
-// ─── Smoke Background — flowing layered ribbons (photo-realistic) ─
+// ─── Deep Smoke Sea — Navier-Stokes Fluid Simulation ────────────
 (function() {
   const canvas = document.getElementById('smokeCanvas');
   const ctx    = canvas.getContext('2d');
   const mobile = /Mobi|Android/i.test(navigator.userAgent);
 
-  // ── Perlin noise 2D ─────────────────────────────────────────
-  const _p = new Uint8Array(512);
+  // ── Grid setup ───────────────────────────────────────────────
+  // N×N fluid grid + 1-cell boundary on each side
+  const N  = mobile ? 48 : 76;
+  const N2 = N + 2;
+  const SZ = N2 * N2;
+  const IX = (i,j) => i + N2*j;
+
+  // ── Typed arrays (fluid state) ────────────────────────────────
+  const dens  = new Float32Array(SZ);
+  const dens0 = new Float32Array(SZ);
+  const vx    = new Float32Array(SZ);
+  const vy    = new Float32Array(SZ);
+  const vx0   = new Float32Array(SZ);
+  const vy0   = new Float32Array(SZ);
+  const prss  = new Float32Array(SZ); // pressure (project step)
+  const divg  = new Float32Array(SZ); // divergence
+
+  // ── Simulation constants ──────────────────────────────────────
+  const VISC   = 0.000008; // velocity viscosity  (low → more swirls)
+  const DIFF   = 0.00018;  // density diffusion   (smoke spreading)
+  const DT     = 0.15;     // time step
+  const ITER   = 8;        // Gauss-Seidel iterations
+  const DISSIP = 0.9915;   // per-frame density dissipation  (~0.85% loss)
+  const BUOY   = -0.0025;  // upward buoyancy (negative y = up in canvas)
+  const VDAMP  = 0.9980;   // per-frame velocity damping (prevents runaway)
+
+  // ── Perlin noise (for density injection) ─────────────────────
+  const _pp = new Uint8Array(512);
   (function(){
     const p=new Uint8Array(256);
     for(let i=0;i<256;i++) p[i]=i;
     for(let i=255;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]];}
-    for(let i=0;i<512;i++) _p[i]=p[i&255];
+    for(let i=0;i<512;i++) _pp[i]=p[i&255];
   })();
-  function _g(h,x,y){const v=h&3;const u=v<2?x:y,w=v<2?y:x;return((v&1)?-u:u)+((v&2)?-w:w);}
-  function _f(t){return t*t*t*(t*(t*6-15)+10);}
-  function noise(x,y){
+  function _gn(h,x,y){const v=h&3;const u=v<2?x:y,w=v<2?y:x;return((v&1)?-u:u)+((v&2)?-w:w);}
+  function _fn(t){return t*t*t*(t*(t*6-15)+10);}
+  function pnoise(x,y){
     const X=Math.floor(x)&255,Y=Math.floor(y)&255;
     const xf=x-Math.floor(x),yf=y-Math.floor(y);
-    const u=_f(xf),v=_f(yf);
-    const a=_p[X]+Y,b=_p[X+1]+Y;
+    const u=_fn(xf),v=_fn(yf);
+    const a=_pp[X]+Y,b=_pp[X+1]+Y;
     const L=(a,b,t)=>a+t*(b-a);
-    return L(L(_g(_p[a],xf,yf),_g(_p[b],xf-1,yf),u),
-             L(_g(_p[a+1],xf,yf-1),_g(_p[b+1],xf-1,yf-1),u),v);
+    return L(L(_gn(_pp[a],xf,yf),_gn(_pp[b],xf-1,yf),u),
+             L(_gn(_pp[a+1],xf,yf-1),_gn(_pp[b+1],xf-1,yf-1),u),v);
   }
 
-  // ── Card tint map ────────────────────────────────────────────
+  // ── Color map ─────────────────────────────────────────────────
   const COLOR_MAP = {
     'bg-owl':[195,205,228],'bg-fox':[228,205,195],'bg-bear':[195,225,198],
     'bg-cat':[202,202,228],'bg-deer':[228,215,195],'bg-seal':[195,210,228],
@@ -341,129 +367,212 @@
     'bg-jellyfish':[215,195,228],'bg-otter':[195,225,212],'bg-penguin':[195,205,228],
     'bg-dolphin':[195,212,228],
   };
-  const DEF = [195, 198, 215];
+  const DEF = [200, 202, 222];
   let curC=[...DEF], tgtC=[...DEF];
+
+  // ── Offscreen canvas: fluid rendered at grid resolution ───────
+  // Scaled up to screen size via drawImage → natural bilinear blur
+  const off  = document.createElement('canvas');
+  off.width  = N2; off.height = N2;
+  const oCtx = off.getContext('2d');
+  const img  = oCtx.createImageData(N2, N2);
+  const pix  = img.data;
 
   let W, H;
 
-  // ── Ribbon definitions ───────────────────────────────────────
-  // Each ribbon is a horizontal bezier path that spans the full width.
-  // It undulates vertically driven by two-frequency Perlin noise.
-  // Many ribbons overlap to create the layered smoke texture.
-  const N_RIB  = mobile ? 8  : 14;
-  const N_PTS  = 16; // horizontal control points per ribbon
-  const IR     = 170; // mouse influence radius (px)
-  const PUSH   = 55;  // max mouse push displacement (px)
+  // ── Boundary conditions ───────────────────────────────────────
+  function set_bnd(b, x){
+    for(let i=1;i<=N;i++){
+      x[IX(0,i)]   = b===1 ? -x[IX(1,i)]   : x[IX(1,i)];
+      x[IX(N+1,i)] = b===1 ? -x[IX(N,i)]   : x[IX(N,i)];
+      x[IX(i,0)]   = b===2 ? -x[IX(i,1)]   : x[IX(i,1)];
+      x[IX(i,N+1)] = b===2 ? -x[IX(i,N)]   : x[IX(i,N)];
+    }
+    x[IX(0,0)]     = 0.5*(x[IX(1,0)]   +x[IX(0,1)]);
+    x[IX(0,N+1)]   = 0.5*(x[IX(1,N+1)] +x[IX(0,N)]);
+    x[IX(N+1,0)]   = 0.5*(x[IX(N,0)]   +x[IX(N+1,1)]);
+    x[IX(N+1,N+1)] = 0.5*(x[IX(N,N+1)] +x[IX(N+1,N)]);
+  }
 
-  let ribbons = [];
-  function init(){
-    ribbons = Array.from({length: N_RIB}, (_, i) => {
-      const t = i / (N_RIB - 1); // 0…1
-      return {
-        // Vertical base, distributed across screen with slight randomness
-        y0:   H * 0.05 + H * 0.9 * t + (Math.random()-0.5) * H * 0.04,
-        no:   Math.random() * 900,
-        tOff: Math.random() * 300,
-        spd:  0.08 + Math.random() * 0.14,   // animation speed
-        amp:  H * 0.06 + Math.random()*H*0.09,// vertical undulation amplitude
-        w:    32 + Math.random() * 38,         // stroke width (px)
-        op:   0.048 + Math.random() * 0.068,   // core opacity
-      };
-    });
+  // ── Gauss-Seidel diffusion ────────────────────────────────────
+  function diffuse(b, x, x0, coeff){
+    const a   = DT * coeff * N * N;
+    const inv = 1 / (1 + 4*a);
+    for(let k=0;k<ITER;k++){
+      for(let j=1;j<=N;j++){
+        for(let i=1;i<=N;i++){
+          x[IX(i,j)] = (x0[IX(i,j)] + a*(x[IX(i-1,j)]+x[IX(i+1,j)]+x[IX(i,j-1)]+x[IX(i,j+1)])) * inv;
+        }
+      }
+      set_bnd(b,x);
+    }
+  }
+
+  // ── Semi-Lagrangian advection ─────────────────────────────────
+  function advect(b, d, d0, u, v){
+    const dt0 = DT * N;
+    for(let j=1;j<=N;j++){
+      for(let i=1;i<=N;i++){
+        let x = i - dt0*u[IX(i,j)];
+        let y = j - dt0*v[IX(i,j)];
+        if(x<0.5) x=0.5; else if(x>N+0.5) x=N+0.5;
+        if(y<0.5) y=0.5; else if(y>N+0.5) y=N+0.5;
+        const i0=x|0, i1=i0+1;
+        const j0=y|0, j1=j0+1;
+        const s1=x-i0, s0=1-s1;
+        const t1=y-j0, t0=1-t1;
+        d[IX(i,j)] = s0*(t0*d0[IX(i0,j0)]+t1*d0[IX(i0,j1)])+
+                     s1*(t0*d0[IX(i1,j0)]+t1*d0[IX(i1,j1)]);
+      }
+    }
+    set_bnd(b,d);
+  }
+
+  // ── Helmholtz projection (divergence-free velocity) ───────────
+  function project(u, v){
+    const h = 1/N;
+    for(let j=1;j<=N;j++){
+      for(let i=1;i<=N;i++){
+        divg[IX(i,j)] = -0.5*h*(u[IX(i+1,j)]-u[IX(i-1,j)]+v[IX(i,j+1)]-v[IX(i,j-1)]);
+        prss[IX(i,j)] = 0;
+      }
+    }
+    set_bnd(0,divg); set_bnd(0,prss);
+    for(let k=0;k<ITER;k++){
+      for(let j=1;j<=N;j++){
+        for(let i=1;i<=N;i++){
+          prss[IX(i,j)] = (divg[IX(i,j)]+prss[IX(i-1,j)]+prss[IX(i+1,j)]+prss[IX(i,j-1)]+prss[IX(i,j+1)])*0.25;
+        }
+      }
+      set_bnd(0,prss);
+    }
+    const invH = 0.5*N;
+    for(let j=1;j<=N;j++){
+      for(let i=1;i<=N;i++){
+        u[IX(i,j)] -= invH*(prss[IX(i+1,j)]-prss[IX(i-1,j)]);
+        v[IX(i,j)] -= invH*(prss[IX(i,j+1)]-prss[IX(i,j-1)]);
+      }
+    }
+    set_bnd(1,u); set_bnd(2,v);
+  }
+
+  // ── Velocity step ─────────────────────────────────────────────
+  function vel_step(){
+    // Buoyancy: smoke rises
+    for(let j=1;j<=N;j++) for(let i=1;i<=N;i++) vy[IX(i,j)]+=BUOY*dens[IX(i,j)];
+    // Diffuse
+    vx0.set(vx); diffuse(1,vx,vx0,VISC);
+    vy0.set(vy); diffuse(2,vy,vy0,VISC);
+    project(vx,vy);
+    // Advect
+    vx0.set(vx); vy0.set(vy);
+    advect(1,vx,vx0,vx0,vy0);
+    advect(2,vy,vy0,vx0,vy0);
+    project(vx,vy);
+    // Dampen to prevent runaway
+    for(let k=0;k<SZ;k++){ vx[k]*=VDAMP; vy[k]*=VDAMP; }
+  }
+
+  // ── Density step ──────────────────────────────────────────────
+  let gt=0;
+  function dens_step(){
+    gt += 0.0022; // very slow drift of injection pattern
+    // Continuously inject low-level noise-textured smoke to fill the space
+    for(let j=1;j<=N;j++){
+      for(let i=1;i<=N;i++){
+        const n = pnoise(i*0.10+gt*0.10, j*0.10-gt*0.08);
+        dens[IX(i,j)] += 0.00065 + Math.max(0, n*0.0022);
+      }
+    }
+    // Slow dissipation keeps smoke persistent but not building forever
+    for(let k=0;k<SZ;k++) dens[k]*=DISSIP;
+    // Diffuse & advect density through velocity field
+    dens0.set(dens); diffuse(0,dens,dens0,DIFF);
+    dens0.set(dens); advect(0,dens,dens0,vx,vy);
+  }
+
+  // ── Render: density → ImageData → scale to screen ─────────────
+  function render(){
+    const r=curC[0]|0, g=curC[1]|0, b=curC[2]|0;
+    let k=0;
+    for(let j=0;j<N2;j++){
+      for(let i=0;i<N2;i++){
+        const d=dens[IX(i,j)];
+        pix[k]   = r;
+        pix[k+1] = g;
+        pix[k+2] = b;
+        // density → alpha: 0.0 – 0.35 density maps to opacity 0 – ~0.20
+        pix[k+3] = d<=0 ? 0 : d>=0.35 ? 56 : (d*160)|0;
+        k+=4;
+      }
+    }
+    oCtx.putImageData(img,0,0);
+    ctx.clearRect(0,0,W,H);
+    ctx.drawImage(off,0,0,W,H); // bilinear upscale → smooth smoke texture
+  }
+
+  // ── Mouse / touch → velocity impulse ─────────────────────────
+  let pmx=-1, pmy=-1;
+  function addInput(x,y,dx,dy){
+    const gi = Math.max(1,Math.min(N,(x/W*N)|0));
+    const gj = Math.max(1,Math.min(N,(y/H*N)|0));
+    const rad = 3;
+    const spd = Math.sqrt(dx*dx+dy*dy);
+    const fs  = Math.min(spd*0.5, 6);
+    for(let di=-rad;di<=rad;di++){
+      for(let dj=-rad;dj<=rad;dj++){
+        const ii=gi+di, jj=gj+dj;
+        if(ii<1||ii>N||jj<1||jj>N) continue;
+        const r2=di*di+dj*dj;
+        if(r2>rad*rad) continue;
+        const fall=1-Math.sqrt(r2)/rad;
+        vx[IX(ii,jj)] += dx*fs*fall*0.03;
+        vy[IX(ii,jj)] += dy*fs*fall*0.03;
+        dens[IX(ii,jj)] += fall*0.035; // finger trail leaves a gentle density peak
+      }
+    }
+  }
+  window.addEventListener('mousemove',e=>{
+    const dx=pmx<0?0:e.clientX-pmx, dy=pmy<0?0:e.clientY-pmy;
+    addInput(e.clientX,e.clientY,dx,dy);
+    pmx=e.clientX; pmy=e.clientY;
+  });
+  window.addEventListener('touchmove',e=>{
+    if(!e.touches.length)return;
+    const t=e.touches[0];
+    const dx=pmx<0?0:t.clientX-pmx, dy=pmy<0?0:t.clientY-pmy;
+    addInput(t.clientX,t.clientY,dx,dy);
+    pmx=t.clientX; pmy=t.clientY;
+  },{passive:true});
+
+  // ── Initial smoke fill ────────────────────────────────────────
+  function fillInitial(){
+    for(let j=1;j<=N;j++){
+      for(let i=1;i<=N;i++){
+        const a=(pnoise(i*0.11,j*0.11)+1)*0.5;
+        const b=(pnoise(i*0.27+20,j*0.27+20)+1)*0.5;
+        dens[IX(i,j)]=(a*0.65+b*0.35)*0.32;
+      }
+    }
   }
 
   function resize(){
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-    init();
-  }
-
-  // ── Mouse / touch ─────────────────────────────────────────────
-  let mx=-9999, my=-9999;
-  window.addEventListener('mousemove', e=>{ mx=e.clientX; my=e.clientY; });
-  window.addEventListener('touchmove', e=>{
-    if(!e.touches.length) return;
-    mx=e.touches[0].clientX; my=e.touches[0].clientY;
-  },{passive:true});
-
-  // ── Draw one ribbon (3 passes: outer halo / mid / core) ───────
-  function drawRibbon(pts, r0, g0, b0, op, w){
-    const n = pts.length;
-    const rgb = `${r0},${g0},${b0}`;
-
-    function mkGrad(alpha){
-      const g = ctx.createLinearGradient(0,0,W,0);
-      g.addColorStop(0,    `rgba(${rgb},0)`);
-      g.addColorStop(0.04, `rgba(${rgb},${alpha.toFixed(4)})`);
-      g.addColorStop(0.96, `rgba(${rgb},${alpha.toFixed(4)})`);
-      g.addColorStop(1,    `rgba(${rgb},0)`);
-      return g;
-    }
-
-    function stroke(lw, grad){
-      ctx.beginPath();
-      ctx.moveTo(pts[0][0], pts[0][1]);
-      for(let i=1;i<n-1;i++){
-        const qx=(pts[i][0]+pts[i+1][0])*0.5;
-        const qy=(pts[i][1]+pts[i+1][1])*0.5;
-        ctx.quadraticCurveTo(pts[i][0],pts[i][1],qx,qy);
-      }
-      ctx.lineTo(pts[n-1][0],pts[n-1][1]);
-      ctx.lineWidth   = lw;
-      ctx.strokeStyle = grad;
-      ctx.stroke();
-    }
-
-    ctx.save();
-    ctx.lineCap='round'; ctx.lineJoin='round';
-    ctx.globalCompositeOperation='screen';
-    stroke(w*3.5, mkGrad(op*0.18));   // wide soft halo
-    stroke(w*1.4, mkGrad(op*0.52));   // mid layer
-    stroke(w*0.45,mkGrad(op));         // bright core
-    ctx.restore();
+    W=canvas.width=window.innerWidth;
+    H=canvas.height=window.innerHeight;
   }
 
   // ── Main loop ─────────────────────────────────────────────────
-  let gt=0;
   function tick(){
-    gt += 0.004; // visible drift speed
-    ctx.clearRect(0,0,W,H);
-
     for(let c=0;c<3;c++) curC[c]+=(tgtC[c]-curC[c])*0.012;
-    const r0=curC[0]|0, g0=curC[1]|0, b0=curC[2]|0;
-
-    for(const r of ribbons){
-      // Build control points along the full width
-      const pts=[];
-      for(let i=0;i<=N_PTS;i++){
-        const xf = i/N_PTS;
-        const x  = xf * W;
-
-        // Two-octave noise: slow large sweep + fast small ripple
-        const nx   = xf*2.2 + r.no*0.004;
-        const ny   = gt*r.spd + r.tOff*0.008;
-        const slow = noise(nx,     ny    ) * r.amp;
-        const fast = noise(nx*3.1, ny*3.1) * r.amp * 0.28;
-        let   y    = r.y0 + slow + fast;
-
-        // ── Mouse: push each point away from cursor ─────────
-        const ddx=x-mx, ddy=y-my;
-        const d=Math.sqrt(ddx*ddx+ddy*ddy);
-        if(d<IR && d>0.5){
-          const push = (1-d/IR)*(1-d/IR) * PUSH;
-          y += (ddy/d)*push;
-        }
-
-        pts.push([x,y]);
-      }
-
-      drawRibbon(pts, r0, g0, b0, r.op, r.w);
-    }
+    vel_step();
+    dens_step();
+    render();
     requestAnimationFrame(tick);
   }
 
-  window.addEventListener('resize', resize);
+  window.addEventListener('resize',resize);
   resize();
+  fillInitial();
   tick();
 
   window.triggerCardSmoke=function(bgClass){
