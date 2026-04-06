@@ -735,7 +735,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const daily = loadDaily();
   if (!daily) return;
   const card = CARDS.find(c => c.id === daily.cardId);
-  if (!card) return;
+  if (!card) { localStorage.removeItem(LS_KEY); return; }
   populateCard(card);
   const cardInner = document.getElementById('cardInner');
   cardInner.style.transition = 'none';
