@@ -194,7 +194,7 @@
   .modal-close:hover{opacity:.85}
 
   /* ── Smoke Canvas ── */
-  #smokeCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;filter:blur(28px);opacity:.9}
+  #smokeCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
 </style>
 </head>
 <body>
@@ -302,7 +302,7 @@
 </div>
 
 <script>
-// ─── Incense Smoke — soft fog particles rising from bottom ──────
+// ─── Incense Smoke — twin-layer streaks with core + halo ────────
 (function() {
   const canvas = document.getElementById('smokeCanvas');
   const ctx    = canvas.getContext('2d');
@@ -328,133 +328,175 @@
              L(_g(_p[a+1],xf,yf-1),_g(_p[b+1],xf-1,yf-1),u),v);
   }
 
-  // ── Color map (card tint, blended toward white) ──────────────
-  // Values represent a subtle tint mixed with white smoke
+  // ── Card color tints (near-white, subtle hue shift) ──────────
   const COLOR_MAP = {
-    'bg-owl':[210,220,255],'bg-fox':[255,220,210],'bg-bear':[210,240,215],
-    'bg-cat':[215,215,255],'bg-deer':[255,240,210],'bg-seal':[210,225,245],
-    'bg-crow':[220,220,230],'bg-turtle':[205,245,240],'bg-phoenix':[255,215,210],
-    'bg-wolf':[210,215,250],'bg-firefly':[215,250,210],'bg-hedgehog':[245,215,225],
-    'bg-squirrel':[255,235,210],'bg-swans':[210,225,255],'bg-elephant':[225,225,240],
-    'bg-falcon':[245,230,210],'bg-sloth':[210,245,220],'bg-raccoon':[230,230,230],
-    'bg-goat':[240,235,215],'bg-whale':[205,220,250],'bg-koala':[235,232,220],
-    'bg-jellyfish':[235,210,250],'bg-otter':[210,245,230],'bg-penguin':[210,220,250],
-    'bg-dolphin':[210,230,255],
+    'bg-owl':[210,220,255],'bg-fox':[255,218,205],'bg-bear':[208,240,212],
+    'bg-cat':[215,215,255],'bg-deer':[255,238,205],'bg-seal':[208,225,248],
+    'bg-crow':[218,218,230],'bg-turtle':[202,245,238],'bg-phoenix':[255,212,205],
+    'bg-wolf':[208,215,252],'bg-firefly':[212,250,208],'bg-hedgehog':[248,212,225],
+    'bg-squirrel':[255,232,208],'bg-swans':[208,225,255],'bg-elephant':[225,225,242],
+    'bg-falcon':[248,228,208],'bg-sloth':[208,248,218],'bg-raccoon':[228,228,228],
+    'bg-goat':[242,235,215],'bg-whale':[202,218,252],'bg-koala':[232,230,218],
+    'bg-jellyfish':[235,208,252],'bg-otter':[208,248,228],'bg-penguin':[208,218,252],
+    'bg-dolphin':[208,228,255],
   };
-  const DEF = [248, 245, 255]; // near-white with faint violet
+  const DEF = [240, 245, 255];
   let curC = [...DEF], tgtC = [...DEF];
 
   let W, H;
   function resize(){
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
+    buildStrands();
   }
 
-  // ── Particle pool ────────────────────────────────────────────
-  const MAX_P = mobile ? 22 : 38;
-  let particles = [];
+  // ── Strand definitions ───────────────────────────────────────
+  // Each strand is an independent incense thread with its own speed.
+  // Particles within a strand are tightly spaced so they read as a line.
+  const N_STRANDS = mobile ? 2 : 3;
+  // Speed presets: slow / medium / fast
+  const SPD_PRESETS = [0.38, 0.65, 0.98];
+  let strands = [];
 
-  function spawn() {
-    // Cluster loosely in a vertical column near center (±35% from center)
-    const cx   = W * (0.33 + Math.random() * 0.34);
-    const r    = 70 + Math.random() * 90;          // puff radius
-    const spd  = 0.45 + Math.random() * 0.55;      // upward px/frame
-    const no   = Math.random() * 500;              // perlin offset
-    const maxOp= 0.055 + Math.random() * 0.045;    // peak opacity per puff
+  function buildStrands(){
+    strands = [];
+    for(let i = 0; i < N_STRANDS; i++){
+      // Cluster near horizontal center, slight offset per strand
+      const xFrac = 0.5 + (i - (N_STRANDS-1)/2) * 0.08;
+      strands.push({
+        baseX: W * xFrac,
+        spd:   SPD_PRESETS[i % 3],
+        no:    Math.random() * 600,   // unique noise seed
+        particles: [],
+        spawnClock: 0,
+      });
+    }
+  }
+
+  // Spawn a new particle at the bottom of a strand
+  function spawnParticle(strand){
     return {
-      x: cx, y: H + r + Math.random() * 60,
-      r, spd, no, maxOp,
+      x:  strand.baseX + (Math.random() - 0.5) * 6,
+      y:  H + 12,
       vx: 0,
-      t0: 0,   // local time counter for noise
+      t0: 0,                       // local time for noise
+      // Core (narrow, denser)
+      coreR: 7  + Math.random() * 5,
+      // Halo (wide, very faint)  — grows as particle rises
+      haloR: 28 + Math.random() * 18,
     };
   }
 
-  // ── Mouse / touch ────────────────────────────────────────────
+  // ── Mouse / touch ─────────────────────────────────────────────
   let mx = -9999, my = -9999;
-  window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  window.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
   window.addEventListener('touchmove', e => {
     if(!e.touches.length) return;
-    mx = e.touches[0].clientX; my = e.touches[0].clientY;
-  }, {passive:true});
+    mx=e.touches[0].clientX; my=e.touches[0].clientY;
+  },{passive:true});
 
-  // ── Main loop ────────────────────────────────────────────────
-  let gt = 0; // global time
+  // ── Main loop ─────────────────────────────────────────────────
+  let gt = 0;
+  // Frames between particle spawns per strand (dense enough to look like a thread)
+  const SPAWN_INTERVAL = mobile ? 7 : 5;
+
   function tick(){
-    gt += 0.0022;
+    gt += 0.002;
     ctx.clearRect(0, 0, W, H);
 
-    // Color lerp toward target (card tint)
-    for(let c = 0; c < 3; c++) curC[c] += (tgtC[c] - curC[c]) * 0.012;
+    // Composite: overlapping streaks brighten toward white (light-on-dark)
+    ctx.globalCompositeOperation = 'screen';
 
-    // Spawn puffs gradually
-    if(particles.length < MAX_P && Math.random() < (mobile ? 0.18 : 0.25)){
-      particles.push(spawn());
-    }
+    for(let c = 0; c < 3; c++) curC[c] += (tgtC[c]-curC[c]) * 0.012;
+    const r0=curC[0]|0, g0=curC[1]|0, b0=curC[2]|0;
 
-    const r0 = curC[0]|0, g0 = curC[1]|0, b0 = curC[2]|0;
-
-    for(let i = particles.length - 1; i >= 0; i--){
-      const p = particles[i];
-      p.t0 += 0.004;
-
-      // ── Upward drift ──────────────────────────────────────
-      p.y -= p.spd;
-
-      // ── Lateral sway via Perlin (slow, organic) ───────────
-      const nx = (p.x / W) * 1.8 + p.no;
-      const ny = gt + p.t0;
-      p.vx += noise(nx, ny) * 0.12;
-      p.vx *= 0.94;
-      p.x  += p.vx;
-
-      // ── Mouse influence: slow gentle push + slight expansion
-      const ddx = p.x - mx, ddy = p.y - my;
-      const d2  = ddx * ddx + ddy * ddy;
-      const INFLUENCE_R = 160;
-      if(d2 < INFLUENCE_R * INFLUENCE_R && d2 > 1){
-        const d   = Math.sqrt(d2);
-        const inf = (1 - d / INFLUENCE_R) * 0.06;
-        p.vx += (ddx / d) * inf;
-        // Slowly expand the puff as if warmth pushes it outward
-        p.r = Math.min(p.r + 0.25, 180);
+    for(const strand of strands){
+      // Spawn: one particle every SPAWN_INTERVAL frames
+      strand.spawnClock++;
+      if(strand.spawnClock >= SPAWN_INTERVAL){
+        strand.spawnClock = 0;
+        strand.particles.push(spawnParticle(strand));
       }
 
-      // ── Remove only after fully above the top edge ─────────
-      if(p.y + p.r < 0){
-        particles.splice(i, 1);
-        continue;
+      for(let i = strand.particles.length - 1; i >= 0; i--){
+        const p = strand.particles[i];
+        p.t0 += 0.003;
+
+        // ── Rise ────────────────────────────────────────────
+        p.y -= strand.spd;
+
+        // ── Sway: amplitude grows with height (dissipation) ──
+        const hFrac    = Math.max(0, Math.min(1, (H - p.y) / H)); // 0→bottom 1→top
+        const swayGain = 0.07 + hFrac * 0.14;
+        const nx = (strand.baseX / W) * 2.2 + strand.no;
+        const ny = gt + p.t0;
+        p.vx += noise(nx, ny) * swayGain;
+        p.vx *= 0.93;
+        p.x  += p.vx;
+
+        // ── Mouse: slow push + halo expansion ────────────────
+        const ddx=p.x-mx, ddy=p.y-my;
+        const d2=ddx*ddx+ddy*ddy;
+        const IR=150;
+        if(d2 < IR*IR && d2 > 1){
+          const d=Math.sqrt(d2);
+          p.vx += (ddx/d) * (1-d/IR) * 0.055;
+          p.haloR = Math.min(p.haloR + 0.4, 90);
+        }
+
+        // ── Halo expands as particle climbs (dissipation) ─────
+        const haloR = p.haloR + hFrac * 55;
+        const coreR = p.coreR + hFrac * 6;
+
+        // ── Remove only after fully past the top ─────────────
+        if(p.y + haloR * 2.2 < 0){
+          strand.particles.splice(i, 1);
+          continue;
+        }
+
+        // ── Opacity envelope ──────────────────────────────────
+        // Fade in over first 90px of travel, full in middle,
+        // fade out only after centre crosses the top edge.
+        const traveled   = (H + 12) - p.y;
+        const fadeInPx   = 90;
+        let baseOp;
+        if(traveled < fadeInPx){
+          baseOp = traveled / fadeInPx;
+        } else if(p.y > 0){
+          baseOp = 1;
+        } else {
+          // Above top: fade over 2× haloR distance
+          baseOp = Math.max(0, (haloR * 2.2 + p.y) / (haloR * 2.2));
+        }
+        if(baseOp < 0.005) continue;
+
+        // ── Draw with 2.2× vertical stretch (ellipse via scale) ─
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.scale(1, 2.2);
+
+        // Halo: wide, very faint
+        const hGrd = ctx.createRadialGradient(0,0,0, 0,0, haloR);
+        hGrd.addColorStop(0,   `rgba(${r0},${g0},${b0},${(baseOp*0.07).toFixed(4)})`);
+        hGrd.addColorStop(0.45,`rgba(${r0},${g0},${b0},${(baseOp*0.025).toFixed(4)})`);
+        hGrd.addColorStop(1,   `rgba(${r0},${g0},${b0},0)`);
+        ctx.beginPath();
+        ctx.arc(0, 0, haloR, 0, Math.PI*2);
+        ctx.fillStyle = hGrd;
+        ctx.fill();
+
+        // Core: narrow, brighter centre
+        const cGrd = ctx.createRadialGradient(0,0,0, 0,0, coreR);
+        cGrd.addColorStop(0,   `rgba(${r0},${g0},${b0},${(baseOp*0.20).toFixed(4)})`);
+        cGrd.addColorStop(0.4, `rgba(${r0},${g0},${b0},${(baseOp*0.09).toFixed(4)})`);
+        cGrd.addColorStop(1,   `rgba(${r0},${g0},${b0},0)`);
+        ctx.beginPath();
+        ctx.arc(0, 0, coreR, 0, Math.PI*2);
+        ctx.fillStyle = cGrd;
+        ctx.fill();
+
+        ctx.restore();
       }
-
-      // ── Opacity envelope ──────────────────────────────────
-      //   Fade in while still below screen bottom
-      //   Full opacity in the middle of the screen
-      //   Fade out only when centre has crossed y=0 (above top)
-      let op;
-      const entryDist = H + p.r;           // y at spawn
-      const traveled  = entryDist - p.y;   // px traveled since spawn
-      const fadeInPx  = 120;               // distance to reach full opacity
-
-      if(traveled < fadeInPx){
-        op = p.maxOp * (traveled / fadeInPx);
-      } else if(p.y > 0){
-        op = p.maxOp;                      // full opacity while on screen
-      } else {
-        // Above the top edge: fade out over one radius
-        op = p.maxOp * Math.max(0, (p.r + p.y) / p.r);
-      }
-
-      if(op < 0.002) continue;
-
-      // ── Draw soft radial gradient blob ────────────────────
-      const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
-      grd.addColorStop(0,   `rgba(${r0},${g0},${b0},${op.toFixed(4)})`);
-      grd.addColorStop(0.5, `rgba(${r0},${g0},${b0},${(op*0.4).toFixed(4)})`);
-      grd.addColorStop(1,   `rgba(${r0},${g0},${b0},0)`);
-
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = grd;
-      ctx.fill();
     }
 
     requestAnimationFrame(tick);
