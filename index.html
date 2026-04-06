@@ -27,30 +27,12 @@
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital@0;1&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   :root{--gold:#e8c96d;--gold-light:#f5e4a0;--deep:#1a1035}
-  body{min-height:100vh;background:radial-gradient(ellipse at 50% 0%,#2d1b5e 0%,#1a1035 55%,#0d0820 100%);font-family:'Lora',Georgia,serif;color:#f0e8ff;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 1rem;overflow-x:hidden}
-  body::before{content:'';position:fixed;inset:0;background-image:radial-gradient(1px 1px at 10% 15%,rgba(255,255,255,.7) 0%,transparent 100%),radial-gradient(1px 1px at 25% 40%,rgba(255,255,255,.5) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 40% 8%,rgba(255,255,255,.8) 0%,transparent 100%),radial-gradient(1px 1px at 55% 30%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 70% 12%,rgba(255,255,255,.7) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 85% 45%,rgba(255,255,255,.6) 0%,transparent 100%),radial-gradient(1px 1px at 18% 70%,rgba(255,255,255,.4) 0%,transparent 100%),radial-gradient(1px 1px at 60% 60%,rgba(255,255,255,.3) 0%,transparent 100%),radial-gradient(1.5px 1.5px at 75% 80%,rgba(255,255,255,.6) 0%,transparent 100%),radial-gradient(1px 1px at 90% 20%,rgba(255,255,255,.5) 0%,transparent 100%);pointer-events:none;z-index:0}
+  body{min-height:100vh;background:#0a1525;font-family:'Lora',Georgia,serif;color:#f0e8ff;display:flex;flex-direction:column;align-items:center;padding:2rem 1rem 1rem;overflow-x:hidden}
 
-  /* ── Velvet shimmer beams ── */
-  .velvet-layer{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
-  .vbeam{position:absolute;width:260px;border-radius:50%;filter:blur(60px);animation:vflow linear infinite}
-  .vbeam:nth-child(1){width:320px;height:900px;background:radial-gradient(ellipse,rgba(180,100,255,.07) 0%,transparent 70%);left:15%;top:-20%;animation-duration:18s;animation-delay:0s}
-  .vbeam:nth-child(2){width:280px;height:800px;background:radial-gradient(ellipse,rgba(232,201,109,.05) 0%,transparent 70%);left:55%;top:-10%;animation-duration:22s;animation-delay:-7s}
-  .vbeam:nth-child(3){width:200px;height:700px;background:radial-gradient(ellipse,rgba(100,150,255,.06) 0%,transparent 70%);left:78%;top:-15%;animation-duration:16s;animation-delay:-3s}
-  .vbeam:nth-child(4){width:240px;height:750px;background:radial-gradient(ellipse,rgba(255,150,200,.04) 0%,transparent 70%);left:30%;top:-5%;animation-duration:20s;animation-delay:-11s}
-  @keyframes vflow{
-    0%  {transform:translateY(-5%) rotate(-8deg) scaleX(1);  opacity:.4}
-    25% {transform:translateY(15%) rotate(4deg)  scaleX(1.1);opacity:.8}
-    50% {transform:translateY(35%) rotate(-6deg) scaleX(.9); opacity:.5}
-    75% {transform:translateY(55%) rotate(5deg)  scaleX(1.15);opacity:.7}
-    100%{transform:translateY(110%) rotate(-8deg) scaleX(1); opacity:.3}
-  }
-
-  /* ── Cursor sparkles ── */
-  .csparkle{position:fixed;pointer-events:none;z-index:9999;font-size:14px;line-height:1;user-select:none;animation:csfade 900ms ease-out forwards}
-  @keyframes csfade{
-    0%  {opacity:1;transform:translate(0,0) scale(1.2) rotate(0deg)}
-    100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(0) rotate(var(--dr))}
-  }
+  /* ── Velvet background ── */
+  #velvet-background{position:fixed;inset:0;z-index:0;pointer-events:none;background:linear-gradient(135deg,#0a1a2d 0%,#0d1f38 45%,#141e30 100%)}
+  #velvet-background::before{content:'';position:absolute;inset:0;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='v'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.68' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='400' height='400' filter='url(%23v)'/%3E%3C/svg%3E");background-size:280px 280px;opacity:.07;mix-blend-mode:overlay}
+  #velvet-background::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 72% 62% at calc(var(--mx,50) * 1%) calc(var(--my,35) * 1%),rgba(28,55,110,.42) 0%,rgba(14,28,65,.18) 42%,transparent 68%);pointer-events:none}
   .app-container{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:480px}
   .header{text-align:center;margin-bottom:1.8rem}
   .header h1{font-family:'Playfair Display',serif;font-size:clamp(1.9rem,5vw,2.6rem);font-weight:600;letter-spacing:.18em;background:linear-gradient(135deg,#f5e4a0,#e8c96d,#c8a83a,#f5e4a0);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:.4rem}
@@ -214,9 +196,9 @@
   .footer-links a:hover{color:rgba(232,201,109,.9)}
 
   /* ── Privacy Policy Modal ── */
-  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(8,3,22,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);z-index:10000;align-items:center;justify-content:center;padding:1.5rem}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(5,12,25,.65);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:10000;align-items:center;justify-content:center;padding:1.5rem}
   .modal-overlay.open{display:flex}
-  .modal-box{background:rgba(18,8,45,.72);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);border:1px solid rgba(232,201,109,.28);border-radius:20px;padding:2.2rem 2rem 1.8rem;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;position:relative;box-shadow:0 0 80px rgba(100,60,180,.3),inset 0 1px 0 rgba(232,201,109,.15)}
+  .modal-box{background:rgba(10,20,45,.78);backdrop-filter:blur(32px);-webkit-backdrop-filter:blur(32px);border:1px solid rgba(232,201,109,.25);border-radius:20px;padding:2.2rem 2rem 1.8rem;max-width:520px;width:100%;max-height:80vh;overflow-y:auto;position:relative;box-shadow:0 8px 60px rgba(5,12,28,.7),inset 0 1px 0 rgba(232,201,109,.12)}
   .modal-box h2{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:600;color:var(--gold-light);letter-spacing:.18em;margin-bottom:1.2rem;text-align:center}
   .modal-box p,.modal-box li{font-family:'Lora',serif;font-weight:300;font-size:.76rem;color:rgba(255,255,255,.78);line-height:1.85;margin-bottom:.75rem;letter-spacing:.02em}
   .modal-box h3{font-family:'Playfair Display',serif;font-size:1rem;font-weight:600;color:rgba(232,201,109,.85);margin:.9rem 0 .35rem;letter-spacing:.12em}
@@ -226,13 +208,7 @@
 </style>
 </head>
 <body>
-<!-- velvet shimmer layer -->
-<div class="velvet-layer" aria-hidden="true">
-  <div class="vbeam"></div>
-  <div class="vbeam"></div>
-  <div class="vbeam"></div>
-  <div class="vbeam"></div>
-</div>
+<div id="velvet-background" aria-hidden="true"></div>
 
 <div class="app-container">
   <div class="header">
@@ -368,27 +344,20 @@ const CARDS = [
 {id:34, title:"The Star-Bearing Penguin",bg:"bg-penguin", image:"Penguin.jpg",       message:"Though the world may feel cold at times, you carry a piece of the sun within you. You are never truly alone."}
 ];
 
-// ─── Cursor sparkles ───────────────────────────────────────────
-const SPARKLE_CHARS = ['✦','✧','⋆','·','✩','˚','*','✫'];
-const SPARKLE_COLORS = ['#e8c96d','#f5e4a0','#ffffff','#d4b8ff','#b8d4ff','#ffb8d4','#c8ffb8'];
-let lastSparkleTime = 0;
-function spawnSparkle(x, y) {
-  const now = Date.now();
-  if (now - lastSparkleTime < 35) return;
-  lastSparkleTime = now;
-  const el = document.createElement('span');
-  el.className = 'csparkle';
-  el.textContent = SPARKLE_CHARS[Math.floor(Math.random() * SPARKLE_CHARS.length)];
-  const dx = (Math.random() - .5) * 80;
-  const dy = -(Math.random() * 70 + 20);
-  const dr = (Math.random() - .5) * 360 + 'deg';
-  el.style.cssText = `left:${x}px;top:${y}px;color:${SPARKLE_COLORS[Math.floor(Math.random()*SPARKLE_COLORS.length)]};font-size:${Math.random()*12+8}px;--dx:${dx}px;--dy:${dy}px;--dr:${dr}`;
-  document.body.appendChild(el);
-  setTimeout(() => el.remove(), 950);
-}
-document.addEventListener('mousemove', e => spawnSparkle(e.clientX, e.clientY));
-document.addEventListener('touchmove', e => { const t = e.touches[0]; spawnSparkle(t.clientX, t.clientY); }, {passive:true});
-setInterval(() => { spawnSparkle(Math.random() * window.innerWidth, Math.random() * window.innerHeight * .7); }, 800);
+// ─── Velvet sheen — follows mouse like light on fabric ─────────
+const velvetBg = document.getElementById('velvet-background');
+let vTx = 50, vTy = 35, vCx = 50, vCy = 35;
+document.addEventListener('mousemove', e => {
+  vTx = (e.clientX / window.innerWidth)  * 100;
+  vTy = (e.clientY / window.innerHeight) * 100;
+});
+(function animateVelvet() {
+  vCx += (vTx - vCx) * 0.028;
+  vCy += (vTy - vCy) * 0.028;
+  velvetBg.style.setProperty('--mx', vCx.toFixed(2));
+  velvetBg.style.setProperty('--my', vCy.toFixed(2));
+  requestAnimationFrame(animateVelvet);
+})();
 
 // ─── Daily Limit ────────────────────────────────────────────────
 const LS_KEY = 'animalOracle_daily';
