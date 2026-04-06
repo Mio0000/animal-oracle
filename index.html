@@ -302,19 +302,19 @@
 </div>
 
 <script>
-// ─── Etheric Smoke — Perlin flow field + ribbon trails ─────────
+// ─── Etheric Smoke — static full-screen ribbons ────────────────
 (function() {
   const canvas = document.getElementById('smokeCanvas');
   const ctx    = canvas.getContext('2d');
   const mobile = /Mobi|Android/i.test(navigator.userAgent);
 
-  // ── Lightweight Perlin noise 2D ─────────────────────────────
-  const _perm = new Uint8Array(512);
+  // ── Perlin noise 2D ──────────────────────────────────────────
+  const _p = new Uint8Array(512);
   (function(){
-    const p = new Uint8Array(256);
-    for (let i=0;i<256;i++) p[i]=i;
-    for (let i=255;i>0;i--){const j=Math.floor(Math.random()*(i+1));const t=p[i];p[i]=p[j];p[j]=t;}
-    for (let i=0;i<512;i++) _perm[i]=p[i&255];
+    const p=new Uint8Array(256);
+    for(let i=0;i<256;i++) p[i]=i;
+    for(let i=255;i>0;i--){const j=Math.floor(Math.random()*(i+1));const tmp=p[i];p[i]=p[j];p[j]=tmp;}
+    for(let i=0;i<512;i++) _p[i]=p[i&255];
   })();
   function _g(h,x,y){const v=h&3;const u=v<2?x:y,w=v<2?y:x;return((v&1)?-u:u)+((v&2)?-w:w);}
   function _f(t){return t*t*t*(t*(t*6-15)+10);}
@@ -322,10 +322,10 @@
     const X=Math.floor(x)&255,Y=Math.floor(y)&255;
     const xf=x-Math.floor(x),yf=y-Math.floor(y);
     const u=_f(xf),v=_f(yf);
-    const a=_perm[X]+Y,b=_perm[X+1]+Y;
+    const a=_p[X]+Y,b=_p[X+1]+Y;
     const L=(a,b,t)=>a+t*(b-a);
-    return L(L(_g(_perm[a],xf,yf),_g(_perm[b],xf-1,yf),u),
-             L(_g(_perm[a+1],xf,yf-1),_g(_perm[b+1],xf-1,yf-1),u),v);
+    return L(L(_g(_p[a],xf,yf),_g(_p[b],xf-1,yf),u),
+             L(_g(_p[a+1],xf,yf-1),_g(_p[b+1],xf-1,yf-1),u),v);
   }
 
   // ── Color map ────────────────────────────────────────────────
@@ -340,146 +340,135 @@
     'bg-jellyfish':[140,80,180],'bg-otter':[80,160,120],'bg-penguin':[80,120,180],
     'bg-dolphin':[80,140,200],
   };
-  const DEF = [120,100,180];
-  let curC = [...DEF], tgtC = [...DEF];
+  const DEF=[120,100,180];
+  let curC=[...DEF], tgtC=[...DEF];
 
-  // ── Canvas size ──────────────────────────────────────────────
+  // ── Canvas / resize ──────────────────────────────────────────
   let W, H;
-  function resize(){ W=canvas.width=window.innerWidth; H=canvas.height=window.innerHeight; }
-  resize();
-  window.addEventListener('resize', resize);
+  function resize(){
+    W=canvas.width=window.innerWidth;
+    H=canvas.height=window.innerHeight;
+    buildStreams();
+  }
 
-  // ── Vortex field (mouse / touch input) ───────────────────────
-  let vortices = [];
-  let prevMX=-1, prevMY=-1;
+  // ── Vortex ───────────────────────────────────────────────────
+  let vortices=[], prevMX=-1, prevMY=-1;
   function addVortex(x,y,dx,dy){
     const s=Math.sqrt(dx*dx+dy*dy);
     if(s<0.3) return;
     vortices.push({x,y,str:Math.min(s*1.2,12),age:0,life:120+Math.random()*80});
   }
-  function vortexVel(px,py){
-    let vx=0,vy=0;
-    for(const v of vortices){
-      const t=1-v.age/v.life;
-      const ex=px-v.x,ey=py-v.y;
-      const d2=ex*ex+ey*ey;
-      if(d2<220*220&&d2>1){
-        const d=Math.sqrt(d2);
-        const inf=(1-d/220)*t*v.str*0.045;
-        vx+=(-ey/d)*inf; vy+=(ex/d)*inf;
-      }
-    }
-    return [vx,vy];
-  }
 
-  // ── Ribbon streams ───────────────────────────────────────────
-  const N   = mobile ? 4 : 6;
-  const LEN = mobile ? 280 : 500;
+  // ── Streams — each spans y: H+30 → -60, always visible ──────
+  const N     = mobile ? 4 : 6;
+  const N_PTS = mobile ? 120 : 200;  // vertical resolution
+  const SWAY  = 55;                  // max px lateral sway
 
+  let streams = [];
   function makeStream(slot){
-    const xBase = W*(slot/N + 0.05 + Math.random()*(0.9/N));
-    const hist=[];
-    for(let i=0;i<LEN;i++) hist.push({x:xBase+(Math.random()-0.5)*8, y:H+i*6});
+    const xBase = W*((slot+0.12+Math.random()*0.76)/N);
+    const pts=[];
+    for(let i=0;i<N_PTS;i++){
+      const frac=i/(N_PTS-1);
+      pts.push({y:(H+30)-frac*(H+90), dx:0});
+    }
     return {
-      x:hist[LEN-1].x, y:hist[LEN-1].y,
-      hist,
-      ns: 0.0018+Math.random()*0.0012,
-      no: Math.random()*200,
-      sp: 0.38+Math.random()*0.22,
-      op: 0.05+Math.random()*0.04,
-      lw: 1.2+Math.random()*1.8,
-      cr:curC[0],cg:curC[1],cb:curC[2],
-      life:0, maxLife:800+Math.random()*600,
+      pts, xBase,
+      ns: 0.0022+Math.random()*0.0018,
+      no: Math.random()*300,
+      op: 0.06+Math.random()*0.05,
+      lw: 1.4+Math.random()*2.2,
+      cr:curC[0], cg:curC[1], cb:curC[2],
     };
   }
-
-  let streams=[];
-  for(let i=0;i<N;i++){
-    const s=makeStream(i);
-    const frac=Math.random();
-    for(let j=0;j<LEN;j++){
-      const rise=(LEN-j)*6*frac;
-      s.hist[j].y=H-rise+(Math.random()-0.5)*4;
-    }
-    s.y=s.hist[LEN-1].y; s.x=s.hist[LEN-1].x;
-    streams.push(s);
+  function buildStreams(){
+    streams=[];
+    for(let i=0;i<N;i++) streams.push(makeStream(i));
   }
 
-  let t=0;
-
-  // ── Draw one ribbon as smooth bezier chain ───────────────────
-  function drawRibbon(s){
-    const h=s.hist;
-    if(h.length<3) return;
+  // ── Draw ribbon ──────────────────────────────────────────────
+  function drawRibbon(s, xs){
+    if(xs.length<3) return;
+    const h=s.pts;
     ctx.save();
     ctx.globalCompositeOperation='lighter';
     ctx.lineWidth=s.lw;
     ctx.lineCap='round';
     ctx.lineJoin='round';
-    for(let i=1;i<h.length-1;i++){
-      const frac=i/h.length;
-      const alpha=Math.sin(frac*Math.PI)*s.op;
+    const FADE_BOT=18, FADE_TOP=25;
+    for(let i=1;i<N_PTS-1;i++){
+      const botFade=Math.min(i/FADE_BOT,1);
+      const topFade=Math.min((N_PTS-1-i)/FADE_TOP,1);
+      const alpha=botFade*topFade*s.op;
       if(alpha<0.003) continue;
       ctx.beginPath();
-      const mx=(h[i].x+h[i+1].x)/2, my=(h[i].y+h[i+1].y)/2;
-      ctx.moveTo((h[i-1].x+h[i].x)/2,(h[i-1].y+h[i].y)/2);
-      ctx.quadraticCurveTo(h[i].x,h[i].y,mx,my);
+      const mx=(xs[i]+xs[i+1])/2, my=(h[i].y+h[i+1].y)/2;
+      ctx.moveTo((xs[i-1]+xs[i])/2,(h[i-1].y+h[i].y)/2);
+      ctx.quadraticCurveTo(xs[i],h[i].y,mx,my);
       ctx.strokeStyle=`rgba(${s.cr|0},${s.cg|0},${s.cb|0},${alpha.toFixed(3)})`;
       ctx.stroke();
     }
     ctx.restore();
   }
 
-  // ── Main loop ────────────────────────────────────────────────
+  // ── Tick ─────────────────────────────────────────────────────
+  let t=0;
   function tick(){
-    t+=0.003;
+    t+=0.0025;
     ctx.clearRect(0,0,W,H);
 
+    // Age vortices
     for(let i=vortices.length-1;i>=0;i--){
       vortices[i].age++;
       if(vortices[i].age>vortices[i].life) vortices.splice(i,1);
     }
 
+    // Color lerp
     for(let c=0;c<3;c++) curC[c]+=(tgtC[c]-curC[c])*0.015;
 
-    // Perturb existing trail history with vortices
-    if(vortices.length>0){
-      for(const s of streams){
-        for(let j=0;j<s.hist.length;j+=2){
-          const h=s.hist[j];
-          const [wvx,wvy]=vortexVel(h.x,h.y);
-          h.x+=wvx*2.5; h.y+=wvy*2.5;
-        }
-      }
-    }
-
-    for(let si=0;si<streams.length;si++){
-      const s=streams[si];
-      s.life++;
-      if(s.life>s.maxLife||s.y<-H*0.15){
-        streams[si]=makeStream(si);
-        continue;
-      }
-      const nx=s.x*s.ns+s.no, ny=s.y*s.ns*0.4+t;
-      const angle=noise(nx,ny)*Math.PI*2;
-      let vx=Math.sin(angle)*0.28;
-      let vy=-s.sp+Math.cos(angle)*0.08;
-      const [wvx,wvy]=vortexVel(s.x,s.y);
-      vx+=wvx; vy+=wvy;
-      s.x+=vx; s.y+=vy;
-      s.x=Math.max(2,Math.min(W-2,s.x));
-      s.hist.push({x:s.x,y:s.y});
-      if(s.hist.length>LEN) s.hist.shift();
+    for(const s of streams){
       s.cr+=(curC[0]-s.cr)*0.02;
       s.cg+=(curC[1]-s.cg)*0.02;
       s.cb+=(curC[2]-s.cb)*0.02;
-      drawRibbon(s);
+
+      // Build x positions: Perlin sway + vortex displacement
+      const xs=new Float32Array(N_PTS);
+      for(let i=0;i<N_PTS;i++){
+        const p=s.pts[i];
+        // Perlin noise lateral sway (time-evolving)
+        const nx=(s.xBase/W)*3+s.no;
+        const ny=(i/N_PTS)*5+t;
+        const sway=noise(nx,ny)*SWAY;
+        // Dampen vortex displacement
+        p.dx*=0.972;
+        xs[i]=s.xBase+sway+p.dx;
+      }
+
+      // Apply vortices to displacement
+      for(const v of vortices){
+        const tv=1-v.age/v.life;
+        for(let i=0;i<N_PTS;i+=2){
+          const p=s.pts[i];
+          const ex=xs[i]-v.x, ey=p.y-v.y;
+          const d2=ex*ex+ey*ey;
+          if(d2<220*220&&d2>1){
+            const d=Math.sqrt(d2);
+            const inf=(1-d/220)*tv*v.str*0.35;
+            p.dx+=(-ey/d)*inf;
+          }
+        }
+      }
+
+      drawRibbon(s, xs);
     }
     requestAnimationFrame(tick);
   }
+
+  window.addEventListener('resize', resize);
+  resize();
   tick();
 
-  // ── Input tracking ───────────────────────────────────────────
+  // ── Input ────────────────────────────────────────────────────
   window.addEventListener('mousemove',e=>{
     addVortex(e.clientX,e.clientY,e.clientX-prevMX,e.clientY-prevMY);
     prevMX=e.clientX; prevMY=e.clientY;
@@ -495,6 +484,7 @@
     tgtC=[...(COLOR_MAP[bgClass]||DEF)];
   };
 })();
+
 
 
 // ─── Cards (image only) ────────────────────────────────────────
