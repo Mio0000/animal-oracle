@@ -480,11 +480,12 @@
     // Inject with larger-scale noise (frequency halved → giant undulations)
     for(let j=1;j<=N;j++){
       for(let i=1;i<=N;i++){
-        // Low-frequency: big rolling clouds
+        // Low-frequency: big rolling clouds — base reduced so dark gaps appear
         const n1 = pnoise(i*0.045+gt*0.06, j*0.045-gt*0.05);
         // Mid-frequency: cotton-candy texture layered on top
         const n2 = pnoise(i*0.10 +gt*0.10+50, j*0.10-gt*0.08+50);
-        dens[IX(i,j)] += 0.0018 + Math.max(0, n1*0.006) + Math.max(0, n2*0.0025);
+        // Lower base injection → light areas stay sparse, giving bright/dark contrast
+        dens[IX(i,j)] += 0.0005 + Math.max(0, n1*0.011) + Math.max(0, n2*0.004);
       }
     }
     // Slow dissipation keeps smoke persistent but not building forever
@@ -506,7 +507,8 @@
       for(let i=0;i<N2;i++){
         const d=dens[IX(i,j)];
         pix[k]   = r; pix[k+1] = g; pix[k+2] = b;
-        pix[k+3] = d<=0 ? 0 : d>=1 ? 115 : (d*115)|0; // max α ≈ 0.45
+        // Power curve (γ=0.7): dark areas stay dark, bright peaks glow
+        pix[k+3] = d<=0 ? 0 : Math.min(115, (Math.pow(d,0.7)*128)|0);
         k+=4;
       }
     }
@@ -523,7 +525,7 @@
       for(let i=0;i<N2;i++){
         const d=dens[IX(i,j)];
         pix[k]   = r; pix[k+1] = g; pix[k+2] = b;
-        pix[k+3] = d<=0 ? 0 : d>=1 ? 28 : (d*28)|0; // max α ≈ 0.11 (faint fog)
+        pix[k+3] = d<=0 ? 0 : Math.min(28, (Math.pow(d,0.7)*32)|0); // fog same gamma
         k+=4;
       }
     }
@@ -542,19 +544,21 @@
   function addInput(x,y,dx,dy){
     const gi = Math.max(1,Math.min(N,(x/W*N)|0));
     const gj = Math.max(1,Math.min(N,(y/H*N)|0));
-    const rad = 4; // wider influence radius
+    const rad = 5; // wide influence for gradual smoke displacement
     const spd = Math.sqrt(dx*dx+dy*dy);
-    const fs  = Math.min(spd*0.7, 9); // stronger impulse
+    // Low cap + small scale → smoke moves slowly and lazily
+    const fs  = Math.min(spd*0.22, 2.5);
     for(let di=-rad;di<=rad;di++){
       for(let dj=-rad;dj<=rad;dj++){
         const ii=gi+di, jj=gj+dj;
         if(ii<1||ii>N||jj<1||jj>N) continue;
         const r2=di*di+dj*dj;
         if(r2>rad*rad) continue;
-        const fall=1-Math.sqrt(r2)/rad;
-        vx[IX(ii,jj)] += dx*fs*fall*0.045;
-        vy[IX(ii,jj)] += dy*fs*fall*0.045;
-        dens[IX(ii,jj)] += fall*0.055; // denser trail, lingers longer
+        // Smooth cosine falloff (softer edge than linear)
+        const fall=0.5+0.5*Math.cos(Math.sqrt(r2)/rad*Math.PI);
+        vx[IX(ii,jj)] += dx*fs*fall*0.022;
+        vy[IX(ii,jj)] += dy*fs*fall*0.022;
+        dens[IX(ii,jj)] += fall*0.030;
       }
     }
   }
