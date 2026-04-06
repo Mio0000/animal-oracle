@@ -285,10 +285,22 @@
 <footer class="site-footer">
   <p>© 2026 Animal Oracle. All rights reserved.</p>
   <nav class="footer-links">
+    <a href="#" onclick="openAbout();return false;">About This Oracle</a>
     <a href="#" onclick="openPrivacy();return false;">Privacy Policy</a>
     <a href="mailto:your-email@example.com">Contact</a>
   </nav>
 </footer>
+
+<!-- About Modal -->
+<div class="modal-overlay" id="aboutModal" onclick="if(event.target===this)closeAbout()">
+  <div class="modal-box">
+    <h2>About Animal Oracle</h2>
+    <p>Animal Oracle is a digital sanctuary designed to provide daily spiritual guidance and emotional healing through the wisdom of the animal kingdom.</p>
+    <p>Featuring 33 uniquely crafted oracle cards, each inspired by traditional tarot archetypes and reimagined with whimsical, storybook-style art.</p>
+    <p>This tool is intended for personal reflection and daily inspiration. Draw one card per day to harmonize your inner energy with the rhythm of nature.</p>
+    <button class="modal-close" onclick="closeAbout()">Close</button>
+  </div>
+</div>
 
 <!-- Privacy Policy Modal -->
 <div class="modal-overlay" id="privacyModal" onclick="if(event.target===this)closePrivacy()">
@@ -736,6 +748,14 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ─── Privacy Modal ─────────────────────────────────────────────
+function openAbout() {
+  document.getElementById('aboutModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeAbout() {
+  document.getElementById('aboutModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
 function openPrivacy() {
   document.getElementById('privacyModal').classList.add('open');
   document.body.style.overflow = 'hidden';
