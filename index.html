@@ -362,7 +362,7 @@
   // ── Streams — each spans y: H+30 → -60, always visible ──────
   const N     = mobile ? 4 : 6;
   const N_PTS = mobile ? 120 : 200;  // vertical resolution
-  const SWAY  = 140;                 // max px lateral sway
+  const SWAY  = 55;                  // max px lateral sway
 
   let streams = [];
   function makeStream(slot){
@@ -376,8 +376,8 @@
       pts, xBase,
       ns: 0.0022+Math.random()*0.0018,
       no: Math.random()*300,
-      op: 0.08+Math.random()*0.07,
-      lw: 3.5+Math.random()*5.0,
+      op: 0.06+Math.random()*0.05,
+      lw: 1.4+Math.random()*2.2,
       cr:curC[0], cg:curC[1], cb:curC[2],
     };
   }
