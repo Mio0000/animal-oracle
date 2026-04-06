@@ -159,6 +159,17 @@
   .bg-frog   {background:linear-gradient(145deg,#0f2d15,#1a5025,#102d18)}
   .bg-elephant{background:linear-gradient(145deg,#1f1f2d,#353548,#282835)}
   .bg-hedgehog{background:linear-gradient(145deg,#2d1a20,#503040,#3a2030)}
+  .bg-squirrel{background:linear-gradient(145deg,#3a2510,#6b4520,#4a3010)}
+  .bg-swans   {background:linear-gradient(145deg,#1a2a3d,#2a3d5a,#1e3050)}
+  .bg-falcon  {background:linear-gradient(145deg,#2d1a0f,#5a3a1a,#3a2410)}
+  .bg-sloth   {background:linear-gradient(145deg,#1a2d1a,#2d4a2a,#203520)}
+  .bg-raccoon {background:linear-gradient(145deg,#252525,#404040,#2d2d2d)}
+  .bg-goat    {background:linear-gradient(145deg,#2d2820,#4a4030,#353025)}
+  .bg-whale   {background:linear-gradient(145deg,#0a1a2d,#102a45,#0d2035)}
+  .bg-koala   {background:linear-gradient(145deg,#2a2820,#454035,#302e25)}
+  .bg-jellyfish{background:linear-gradient(145deg,#1a0a2d,#35154a,#200d38)}
+  .bg-otter   {background:linear-gradient(145deg,#1a2a20,#2d4535,#203028)}
+  .bg-penguin {background:linear-gradient(145deg,#101828,#1a2840,#141e30)}
   @media(max-width:400px){.card-stage{max-width:290px}.btn-draw{padding:.8rem 1.8rem;min-width:190px}}
   @media(min-width:600px){.card-stage{max-width:360px}}
 
@@ -331,7 +342,20 @@ const CARDS = [
 {id:17, title:"The Mystic Frog",      bg:"bg-frog",     image:null,                message:"Transformation begins in the stillness between moments. Cleanse your spirit and leap toward your next chapter."},
 {id:18, title:"The Gentle Elephant",  bg:"bg-elephant", image:null,                message:"Some memories are heavy, but you have the strength to carry them with grace. Remember your roots, but walk forward."},
 {id:19, title:"The Hedgehog Guide",   bg:"bg-hedgehog", image:"Verrilgn.jpg",      message:"It is safe to soften your edges. You do not need to defend your heart against those who truly wish to love you."},
-{id:20, title:"The Royal Lion",       bg:"bg-lion",     image:null,                message:"True sovereignty comes from a heart of gold, not a crown of power. Roar with compassion, and the world will listen."}
+{id:20, title:"The Royal Lion",       bg:"bg-lion",     image:null,                message:"True sovereignty comes from a heart of gold, not a crown of power. Roar with compassion, and the world will listen."},
+{id:21, title:"The Traveling Squirrel", bg:"bg-squirrel", image:"EaySquirrel.jpg",   message:"Adventure begins the moment you decide to step outside your comfort zone. Trust your curiosity; it knows the way."},
+{id:22, title:"The Pair of Swans",      bg:"bg-swans",    image:"HavseSwan.jpg",     message:"True harmony is found when two hearts beat as one. Nurture your connections, for love is the highest frequency of all."},
+{id:23, title:"The Great Elephant",     bg:"bg-elephant", image:"ThephantElephant.jpg", message:"Stability is not found in the world around you, but in the foundation you build within. Stand firm in your quiet power."},
+{id:24, title:"The Swift Falcon",       bg:"bg-falcon",   image:"TlrghSwiet.jpg",    message:"Focus your vision on the horizon and fly with unwavering determination. Your goal is closer than it appears."},
+{id:25, title:"The Peaceful Sloth",     bg:"bg-sloth",    image:"Slotth.jpg",        message:"There is profound wisdom in slowing down. Sometimes, the most productive thing you can do is simply be, and observe."},
+{id:26, title:"The Mischievous Raccoon",bg:"bg-raccoon",  image:"ThyMony.jpg",       message:"Be mindful of the shadows that glisten too brightly. True treasure is felt in the soul, not held in the hands."},
+{id:27, title:"The Mountain Goat",      bg:"bg-goat",     image:"ThantinlGoat.jpg",  message:"When the old structures crumble, do not fear. Leap gracefully into the new, for you were born to climb higher."},
+{id:28, title:"The Joyful Dolphin",     bg:"bg-dolphin",  image:"Olliphin.jpg",      message:"Let your heart leap with the pure light of success. You have earned this moment of radiant joy—dive into it!"},
+{id:29, title:"The Cosmic Whale",       bg:"bg-whale",    image:"Whale.jpg",         message:"You are an integral part of the vast, infinite ocean of existence. Everything has come full circle. You are home."},
+{id:30, title:"The Dreaming Koala",     bg:"bg-koala",    image:"Coala.jpg",         message:"Rest is a sacred act of creation. In the stillness of your dreams, the seeds of your future are beginning to sprout."},
+{id:31, title:"The Ethereal Jellyfish", bg:"bg-jellyfish",image:"GellyFish.jpg",     message:"You do not need to struggle against the tide. Your inner light is enough to guide you through the deepest waters."},
+{id:33, title:"The Playful Otter",      bg:"bg-otter",    image:"otters.jpg",        message:"Life is a river meant to be enjoyed, not just navigated. Reach out, hold hands, and remember the power of play."},
+{id:34, title:"The Star-Bearing Penguin",bg:"bg-penguin", image:"Penguin.jpg",       message:"Though the world may feel cold at times, you carry a piece of the sun within you. You are never truly alone."}
 ];
 
 // ─── Cursor sparkles ───────────────────────────────────────────
@@ -398,7 +422,10 @@ const CARD_SYMBOLS = {
   'bg-owl':'🦉','bg-fox':'🦊','bg-bear':'🐻','bg-butterfly':'🦋','bg-cat':'🐱',
   'bg-deer':'🦌','bg-seal':'🦭','bg-rabbit':'🐇','bg-crow':'🐦‍⬛','bg-turtle':'🐢',
   'bg-phoenix':'🔥','bg-dolphin':'🐬','bg-mouse':'🐭','bg-wolf':'🐺','bg-firefly':'✨',
-  'bg-bee':'🐝','bg-frog':'🐸','bg-elephant':'🐘','bg-hedgehog':'🦔','bg-lion':'🦁'
+  'bg-bee':'🐝','bg-frog':'🐸','bg-elephant':'🐘','bg-hedgehog':'🦔','bg-lion':'🦁',
+  'bg-squirrel':'🐿️','bg-swans':'🦢','bg-falcon':'🦅','bg-sloth':'🦥',
+  'bg-raccoon':'🦝','bg-goat':'🐐','bg-whale':'🐋',
+  'bg-koala':'🐨','bg-jellyfish':'🪼','bg-otter':'🦦','bg-penguin':'🐧'
 };
 
 function makePlaceholder(card) {
