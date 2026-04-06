@@ -302,7 +302,7 @@
 </div>
 
 <script>
-// ─── Incense Smoke — twin-layer streaks with core + halo ────────
+// ─── Incense Smoke — thin bezier wisps, path-based ──────────────
 (function() {
   const canvas = document.getElementById('smokeCanvas');
   const ctx    = canvas.getContext('2d');
@@ -328,66 +328,62 @@
              L(_g(_p[a+1],xf,yf-1),_g(_p[b+1],xf-1,yf-1),u),v);
   }
 
-  // ── Card color tints (near-white, subtle hue shift) ──────────
+  // ── Color map — muted cool-gray, subtle card tint ─────────────
   const COLOR_MAP = {
-    'bg-owl':[210,220,255],'bg-fox':[255,218,205],'bg-bear':[208,240,212],
-    'bg-cat':[215,215,255],'bg-deer':[255,238,205],'bg-seal':[208,225,248],
-    'bg-crow':[218,218,230],'bg-turtle':[202,245,238],'bg-phoenix':[255,212,205],
-    'bg-wolf':[208,215,252],'bg-firefly':[212,250,208],'bg-hedgehog':[248,212,225],
-    'bg-squirrel':[255,232,208],'bg-swans':[208,225,255],'bg-elephant':[225,225,242],
-    'bg-falcon':[248,228,208],'bg-sloth':[208,248,218],'bg-raccoon':[228,228,228],
-    'bg-goat':[242,235,215],'bg-whale':[202,218,252],'bg-koala':[232,230,218],
-    'bg-jellyfish':[235,208,252],'bg-otter':[208,248,228],'bg-penguin':[208,218,252],
-    'bg-dolphin':[208,228,255],
+    'bg-owl':[195,205,228],'bg-fox':[228,208,198],'bg-bear':[198,228,202],
+    'bg-cat':[205,205,228],'bg-deer':[228,218,198],'bg-seal':[198,212,228],
+    'bg-crow':[210,210,222],'bg-turtle':[195,228,222],'bg-phoenix':[228,200,198],
+    'bg-wolf':[198,205,228],'bg-firefly':[200,228,198],'bg-hedgehog':[228,200,212],
+    'bg-squirrel':[228,215,198],'bg-swans':[198,212,228],'bg-elephant':[212,212,228],
+    'bg-falcon':[228,215,198],'bg-sloth':[198,228,208],'bg-raccoon':[215,215,215],
+    'bg-goat':[225,220,205],'bg-whale':[192,208,228],'bg-koala':[218,215,205],
+    'bg-jellyfish':[218,198,228],'bg-otter':[198,228,215],'bg-penguin':[198,208,228],
+    'bg-dolphin':[198,215,228],
   };
-  const DEF = [240, 245, 255];
+  const DEF = [200, 202, 220]; // cool near-gray default
   let curC = [...DEF], tgtC = [...DEF];
 
   let W, H;
   function resize(){
     W = canvas.width  = window.innerWidth;
     H = canvas.height = window.innerHeight;
-    buildStrands();
+    buildWisps();
   }
 
-  // ── Strand definitions ───────────────────────────────────────
-  // Each strand is an independent incense thread with its own speed.
-  // Particles within a strand are tightly spaced so they read as a line.
-  const N_STRANDS = mobile ? 2 : 3;
-  // Speed presets: slow / medium / fast
-  const SPD_PRESETS = [0.38, 0.65, 0.98];
-  let strands = [];
+  // ── Wisp definitions ─────────────────────────────────────────
+  // Positioned left/right of center to avoid covering the card.
+  // Card occupies roughly 30%–70% of screen width horizontally.
+  // Each wisp is a full-height bezier path recomputed every frame.
+  //
+  // xf   = base x as fraction of W
+  // spd  = how fast the noise pattern scrolls upward (apparent rise speed)
+  // no   = unique noise offset (seed)
+  // sway = max lateral amplitude in px
+  const WISP_DEFS = mobile
+    ? [ {xf:0.24, spd:0.30, no:0,   sway:11},
+        {xf:0.78, spd:0.42, no:280, sway:13} ]
+    : [ {xf:0.16, spd:0.28, no:0,   sway:10},
+        {xf:0.30, spd:0.46, no:190, sway:13},
+        {xf:0.74, spd:0.33, no:370, sway:11},
+        {xf:0.86, spd:0.50, no:560, sway:12} ];
 
-  function buildStrands(){
-    strands = [];
-    for(let i = 0; i < N_STRANDS; i++){
-      // Cluster near horizontal center, slight offset per strand
-      const xFrac = 0.5 + (i - (N_STRANDS-1)/2) * 0.08;
-      strands.push({
-        baseX: W * xFrac,
-        spd:   SPD_PRESETS[i % 3],
-        no:    Math.random() * 600,   // unique noise seed
-        particles: [],
-        spawnClock: 0,
-      });
-    }
+  let wisps = [];
+  function buildWisps(){
+    wisps = WISP_DEFS.map(d => ({
+      xBase: W * d.xf,
+      spd:   d.spd,
+      no:    d.no,
+      sway:  d.sway,
+    }));
   }
 
-  // Spawn a new particle at the bottom of a strand
-  function spawnParticle(strand){
-    return {
-      x:  strand.baseX + (Math.random() - 0.5) * 6,
-      y:  H + 12,
-      vx: 0,
-      t0: 0,                       // local time for noise
-      // Core (narrow, denser)
-      coreR: 7  + Math.random() * 5,
-      // Halo (wide, very faint)  — grows as particle rises
-      haloR: 28 + Math.random() * 18,
-    };
-  }
+  // Resolution of each wisp path (higher = smoother curves)
+  const N_PTS = 80;
+  // Fraction of path length over which opacity fades in/out
+  const FADE_IN  = 0.07;  // bottom 7%
+  const FADE_OUT = 0.12;  // top 12%
 
-  // ── Mouse / touch ─────────────────────────────────────────────
+  // Mouse
   let mx = -9999, my = -9999;
   window.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
   window.addEventListener('touchmove', e => {
@@ -395,111 +391,91 @@
     mx=e.touches[0].clientX; my=e.touches[0].clientY;
   },{passive:true});
 
-  // ── Main loop ─────────────────────────────────────────────────
   let gt = 0;
-  // Frames between particle spawns per strand (dense enough to look like a thread)
-  const SPAWN_INTERVAL = mobile ? 7 : 5;
 
   function tick(){
-    gt += 0.002;
+    gt += 0.0018; // very slow global time advance
     ctx.clearRect(0, 0, W, H);
-
-    // Composite: overlapping streaks brighten toward white (light-on-dark)
     ctx.globalCompositeOperation = 'screen';
 
-    for(let c = 0; c < 3; c++) curC[c] += (tgtC[c]-curC[c]) * 0.012;
+    for(let c=0;c<3;c++) curC[c]+=(tgtC[c]-curC[c])*0.012;
     const r0=curC[0]|0, g0=curC[1]|0, b0=curC[2]|0;
+    const rgb = `${r0},${g0},${b0}`;
 
-    for(const strand of strands){
-      // Spawn: one particle every SPAWN_INTERVAL frames
-      strand.spawnClock++;
-      if(strand.spawnClock >= SPAWN_INTERVAL){
-        strand.spawnClock = 0;
-        strand.particles.push(spawnParticle(strand));
-      }
+    for(const w of wisps){
+      // Build spine: N_PTS from y=(H+30) at bottom to y=(-60) at top
+      const pts = new Float32Array(N_PTS * 2); // interleaved [x0,y0,x1,y1,...]
+      for(let i=0; i<N_PTS; i++){
+        const frac = i/(N_PTS-1);                        // 0=bottom, 1=top
+        const y    = (H+30) - frac*(H+90);               // H+30 → -60
 
-      for(let i = strand.particles.length - 1; i >= 0; i--){
-        const p = strand.particles[i];
-        p.t0 += 0.003;
+        // Two-frequency noise for natural curling:
+        // slow large drift + fast small curl
+        const nx   = w.xBase/W * 1.6 + w.no * 0.004;
+        const ny   = frac * 3.5 - gt * w.spd;            // scroll upward over time
+        const slow = noise(nx,       ny      ) * w.sway;
+        const fast = noise(nx*2.8,   ny*2.8  ) * w.sway * 0.32;
 
-        // ── Rise ────────────────────────────────────────────
-        p.y -= strand.spd;
+        // Sway expands slightly near top (smoke spreads as it rises)
+        const spread   = 1 + frac * 0.6;
+        let   x        = w.xBase + (slow + fast) * spread;
 
-        // ── Sway: amplitude grows with height (dissipation) ──
-        const hFrac    = Math.max(0, Math.min(1, (H - p.y) / H)); // 0→bottom 1→top
-        const swayGain = 0.07 + hFrac * 0.14;
-        const nx = (strand.baseX / W) * 2.2 + strand.no;
-        const ny = gt + p.t0;
-        p.vx += noise(nx, ny) * swayGain;
-        p.vx *= 0.93;
-        p.x  += p.vx;
-
-        // ── Mouse: slow push + halo expansion ────────────────
-        const ddx=p.x-mx, ddy=p.y-my;
-        const d2=ddx*ddx+ddy*ddy;
-        const IR=150;
-        if(d2 < IR*IR && d2 > 1){
+        // Mouse: gentle push (max ~4 px), no sudden scatter
+        const ddx=x-mx, ddy=y-my, d2=ddx*ddx+ddy*ddy;
+        if(d2 < 130*130 && d2>1){
           const d=Math.sqrt(d2);
-          p.vx += (ddx/d) * (1-d/IR) * 0.055;
-          p.haloR = Math.min(p.haloR + 0.4, 90);
+          x += (ddx/d) * (1-d/130) * 3.5;
         }
 
-        // ── Halo expands as particle climbs (dissipation) ─────
-        const haloR = p.haloR + hFrac * 55;
-        const coreR = p.coreR + hFrac * 6;
-
-        // ── Remove only after fully past the top ─────────────
-        if(p.y + haloR * 2.2 < 0){
-          strand.particles.splice(i, 1);
-          continue;
-        }
-
-        // ── Opacity envelope ──────────────────────────────────
-        // Fade in over first 90px of travel, full in middle,
-        // fade out only after centre crosses the top edge.
-        const traveled   = (H + 12) - p.y;
-        const fadeInPx   = 90;
-        let baseOp;
-        if(traveled < fadeInPx){
-          baseOp = traveled / fadeInPx;
-        } else if(p.y > 0){
-          baseOp = 1;
-        } else {
-          // Above top: fade over 2× haloR distance
-          baseOp = Math.max(0, (haloR * 2.2 + p.y) / (haloR * 2.2));
-        }
-        if(baseOp < 0.005) continue;
-
-        // ── Draw with 2.2× vertical stretch (ellipse via scale) ─
-        ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.scale(1, 2.2);
-
-        // Halo: wide, very faint
-        const hGrd = ctx.createRadialGradient(0,0,0, 0,0, haloR);
-        hGrd.addColorStop(0,   `rgba(${r0},${g0},${b0},${(baseOp*0.07).toFixed(4)})`);
-        hGrd.addColorStop(0.45,`rgba(${r0},${g0},${b0},${(baseOp*0.025).toFixed(4)})`);
-        hGrd.addColorStop(1,   `rgba(${r0},${g0},${b0},0)`);
-        ctx.beginPath();
-        ctx.arc(0, 0, haloR, 0, Math.PI*2);
-        ctx.fillStyle = hGrd;
-        ctx.fill();
-
-        // Core: narrow, brighter centre
-        const cGrd = ctx.createRadialGradient(0,0,0, 0,0, coreR);
-        cGrd.addColorStop(0,   `rgba(${r0},${g0},${b0},${(baseOp*0.20).toFixed(4)})`);
-        cGrd.addColorStop(0.4, `rgba(${r0},${g0},${b0},${(baseOp*0.09).toFixed(4)})`);
-        cGrd.addColorStop(1,   `rgba(${r0},${g0},${b0},0)`);
-        ctx.beginPath();
-        ctx.arc(0, 0, coreR, 0, Math.PI*2);
-        ctx.fillStyle = cGrd;
-        ctx.fill();
-
-        ctx.restore();
+        pts[i*2]   = x;
+        pts[i*2+1] = y;
       }
+
+      // ── Opacity gradient along the wisp (linear, y-axis) ──
+      // gradient goes from bottom point y to top point y
+      const yBot = pts[1];           // y of point 0  (H+30)
+      const yTop = pts[(N_PTS-1)*2+1]; // y of last point (-60)
+
+      function makeGrad(alpha){
+        const g = ctx.createLinearGradient(0, yBot, 0, yTop);
+        g.addColorStop(0,          `rgba(${rgb},0)`);
+        g.addColorStop(FADE_IN,    `rgba(${rgb},${alpha.toFixed(4)})`);
+        g.addColorStop(1-FADE_OUT, `rgba(${rgb},${alpha.toFixed(4)})`);
+        g.addColorStop(1,          `rgba(${rgb},0)`);
+        return g;
+      }
+
+      // ── Draw halo: 4 px wide, very faint ──────────────────
+      ctx.save();
+      ctx.lineCap  = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth   = 4.5;
+      ctx.strokeStyle = makeGrad(0.008);
+      drawSpline(pts);
+
+      // ── Draw core: 1.2 px, slightly more visible ───────────
+      ctx.lineWidth   = 1.2;
+      ctx.strokeStyle = makeGrad(0.028);
+      drawSpline(pts);
+
+      ctx.restore();
     }
 
     requestAnimationFrame(tick);
+  }
+
+  // Draw a smooth quadratic spline through the point array
+  function drawSpline(pts){
+    ctx.beginPath();
+    ctx.moveTo(pts[0], pts[1]);
+    for(let i=1; i<N_PTS-1; i++){
+      const mx=(pts[i*2]+pts[(i+1)*2])*0.5;
+      const my=(pts[i*2+1]+pts[(i+1)*2+1])*0.5;
+      ctx.quadraticCurveTo(pts[i*2], pts[i*2+1], mx, my);
+    }
+    const last=(N_PTS-1)*2;
+    ctx.lineTo(pts[last], pts[last+1]);
+    ctx.stroke();
   }
 
   window.addEventListener('resize', resize);
