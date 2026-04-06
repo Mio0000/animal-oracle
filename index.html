@@ -328,12 +328,12 @@
 
   // ── Simulation constants ──────────────────────────────────────
   const VISC   = 0.000008; // velocity viscosity  (low → more swirls)
-  const DIFF   = 0.00018;  // density diffusion   (smoke spreading)
+  const DIFF   = 0.00022;  // density diffusion   (smoke spreading)
   const DT     = 0.15;     // time step
   const ITER   = 8;        // Gauss-Seidel iterations
-  const DISSIP = 0.9915;   // per-frame density dissipation  (~0.85% loss)
+  const DISSIP = 0.9968;   // per-frame density dissipation (slower → denser sea)
   const BUOY   = -0.0025;  // upward buoyancy (negative y = up in canvas)
-  const VDAMP  = 0.9980;   // per-frame velocity damping (prevents runaway)
+  const VDAMP  = 0.9995;   // very slow velocity damping → vortex traces persist
 
   // ── Perlin noise (for density injection) ─────────────────────
   const _pp = new Uint8Array(512);
@@ -476,12 +476,15 @@
   // ── Density step ──────────────────────────────────────────────
   let gt=0;
   function dens_step(){
-    gt += 0.0022; // very slow drift of injection pattern
-    // Continuously inject low-level noise-textured smoke to fill the space
+    gt += 0.0018; // very slow drift of injection pattern
+    // Inject with larger-scale noise (frequency halved → giant undulations)
     for(let j=1;j<=N;j++){
       for(let i=1;i<=N;i++){
-        const n = pnoise(i*0.10+gt*0.10, j*0.10-gt*0.08);
-        dens[IX(i,j)] += 0.00065 + Math.max(0, n*0.0022);
+        // Low-frequency: big rolling clouds
+        const n1 = pnoise(i*0.045+gt*0.06, j*0.045-gt*0.05);
+        // Mid-frequency: cotton-candy texture layered on top
+        const n2 = pnoise(i*0.10 +gt*0.10+50, j*0.10-gt*0.08+50);
+        dens[IX(i,j)] += 0.0018 + Math.max(0, n1*0.006) + Math.max(0, n2*0.0025);
       }
     }
     // Slow dissipation keeps smoke persistent but not building forever
@@ -491,24 +494,47 @@
     dens0.set(dens); advect(0,dens,dens0,vx,vy);
   }
 
-  // ── Render: density → ImageData → scale to screen ─────────────
+  // ── Render: two-pass (core dense + surrounding fog) + zoom depth ─
+  // Pass A — core layer: high opacity, tight mapping
+  // Pass B — fog layer:  low opacity, drawn oversized (zoom = depth illusion)
   function render(){
     const r=curC[0]|0, g=curC[1]|0, b=curC[2]|0;
+
+    // ── Pass A: core — density 0→1 maps to alpha 0→0.45 ──────────
     let k=0;
     for(let j=0;j<N2;j++){
       for(let i=0;i<N2;i++){
         const d=dens[IX(i,j)];
-        pix[k]   = r;
-        pix[k+1] = g;
-        pix[k+2] = b;
-        // density → alpha: 0.0 – 0.35 density maps to opacity 0 – ~0.20
-        pix[k+3] = d<=0 ? 0 : d>=0.35 ? 56 : (d*160)|0;
+        pix[k]   = r; pix[k+1] = g; pix[k+2] = b;
+        pix[k+3] = d<=0 ? 0 : d>=1 ? 115 : (d*115)|0; // max α ≈ 0.45
         k+=4;
       }
     }
     oCtx.putImageData(img,0,0);
+
     ctx.clearRect(0,0,W,H);
-    ctx.drawImage(off,0,0,W,H); // bilinear upscale → smooth smoke texture
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.drawImage(off, 0,0, W,H);   // exact-fit core layer
+
+    // ── Pass B: fog — drawn 3% larger, centred, very faint ───────
+    // The slight zoom creates a "smoke advancing toward you" depth feeling
+    k=0;
+    for(let j=0;j<N2;j++){
+      for(let i=0;i<N2;i++){
+        const d=dens[IX(i,j)];
+        pix[k]   = r; pix[k+1] = g; pix[k+2] = b;
+        pix[k+3] = d<=0 ? 0 : d>=1 ? 28 : (d*28)|0; // max α ≈ 0.11 (faint fog)
+        k+=4;
+      }
+    }
+    oCtx.putImageData(img,0,0);
+
+    // Draw 3% larger centred → gentle zoom-in halo effect
+    const zx = W*0.015, zy = H*0.015;
+    ctx.globalCompositeOperation = 'screen'; // glow where layers overlap
+    ctx.drawImage(off, -zx,-zy, W+zx*2, H+zy*2);
+
+    ctx.globalCompositeOperation = 'source-over'; // reset
   }
 
   // ── Mouse / touch → velocity impulse ─────────────────────────
@@ -516,9 +542,9 @@
   function addInput(x,y,dx,dy){
     const gi = Math.max(1,Math.min(N,(x/W*N)|0));
     const gj = Math.max(1,Math.min(N,(y/H*N)|0));
-    const rad = 3;
+    const rad = 4; // wider influence radius
     const spd = Math.sqrt(dx*dx+dy*dy);
-    const fs  = Math.min(spd*0.5, 6);
+    const fs  = Math.min(spd*0.7, 9); // stronger impulse
     for(let di=-rad;di<=rad;di++){
       for(let dj=-rad;dj<=rad;dj++){
         const ii=gi+di, jj=gj+dj;
@@ -526,9 +552,9 @@
         const r2=di*di+dj*dj;
         if(r2>rad*rad) continue;
         const fall=1-Math.sqrt(r2)/rad;
-        vx[IX(ii,jj)] += dx*fs*fall*0.03;
-        vy[IX(ii,jj)] += dy*fs*fall*0.03;
-        dens[IX(ii,jj)] += fall*0.035; // finger trail leaves a gentle density peak
+        vx[IX(ii,jj)] += dx*fs*fall*0.045;
+        vy[IX(ii,jj)] += dy*fs*fall*0.045;
+        dens[IX(ii,jj)] += fall*0.055; // denser trail, lingers longer
       }
     }
   }
@@ -549,9 +575,9 @@
   function fillInitial(){
     for(let j=1;j<=N;j++){
       for(let i=1;i<=N;i++){
-        const a=(pnoise(i*0.11,j*0.11)+1)*0.5;
-        const b=(pnoise(i*0.27+20,j*0.27+20)+1)*0.5;
-        dens[IX(i,j)]=(a*0.65+b*0.35)*0.32;
+        const a=(pnoise(i*0.05,j*0.05)+1)*0.5; // large scale
+        const b=(pnoise(i*0.13+20,j*0.13+20)+1)*0.5; // medium scale
+        dens[IX(i,j)]=(a*0.7+b*0.3)*0.68; // start dense
       }
     }
   }
