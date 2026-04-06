@@ -194,7 +194,7 @@
   .modal-close:hover{opacity:.85}
 
   /* ── Smoke Canvas ── */
-  #smokeCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;filter:blur(2px)}
+  #smokeCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;filter:blur(28px);opacity:.9}
 </style>
 </head>
 <body>
@@ -302,13 +302,13 @@
 </div>
 
 <script>
-// ─── Etheric Smoke — static full-screen ribbons ────────────────
+// ─── Incense Smoke — soft fog particles rising from bottom ──────
 (function() {
   const canvas = document.getElementById('smokeCanvas');
   const ctx    = canvas.getContext('2d');
   const mobile = /Mobi|Android/i.test(navigator.userAgent);
 
-  // ── Perlin noise 2D ──────────────────────────────────────────
+  // ── Perlin noise 2D ─────────────────────────────────────────
   const _p = new Uint8Array(512);
   (function(){
     const p=new Uint8Array(256);
@@ -328,139 +328,135 @@
              L(_g(_p[a+1],xf,yf-1),_g(_p[b+1],xf-1,yf-1),u),v);
   }
 
-  // ── Color map ────────────────────────────────────────────────
+  // ── Color map (card tint, blended toward white) ──────────────
+  // Values represent a subtle tint mixed with white smoke
   const COLOR_MAP = {
-    'bg-owl':[100,130,200],'bg-fox':[200,100,60],'bg-bear':[80,140,90],
-    'bg-cat':[100,100,200],'bg-deer':[180,140,60],'bg-seal':[80,120,160],
-    'bg-crow':[100,100,120],'bg-turtle':[60,160,140],'bg-phoenix':[200,80,60],
-    'bg-wolf':[80,100,180],'bg-firefly':[100,180,80],'bg-hedgehog':[160,80,100],
-    'bg-squirrel':[180,120,60],'bg-swans':[100,140,200],'bg-elephant':[120,120,160],
-    'bg-falcon':[160,120,60],'bg-sloth':[80,160,100],'bg-raccoon':[120,120,120],
-    'bg-goat':[160,150,100],'bg-whale':[60,120,180],'bg-koala':[140,130,100],
-    'bg-jellyfish':[140,80,180],'bg-otter':[80,160,120],'bg-penguin':[80,120,180],
-    'bg-dolphin':[80,140,200],
+    'bg-owl':[210,220,255],'bg-fox':[255,220,210],'bg-bear':[210,240,215],
+    'bg-cat':[215,215,255],'bg-deer':[255,240,210],'bg-seal':[210,225,245],
+    'bg-crow':[220,220,230],'bg-turtle':[205,245,240],'bg-phoenix':[255,215,210],
+    'bg-wolf':[210,215,250],'bg-firefly':[215,250,210],'bg-hedgehog':[245,215,225],
+    'bg-squirrel':[255,235,210],'bg-swans':[210,225,255],'bg-elephant':[225,225,240],
+    'bg-falcon':[245,230,210],'bg-sloth':[210,245,220],'bg-raccoon':[230,230,230],
+    'bg-goat':[240,235,215],'bg-whale':[205,220,250],'bg-koala':[235,232,220],
+    'bg-jellyfish':[235,210,250],'bg-otter':[210,245,230],'bg-penguin':[210,220,250],
+    'bg-dolphin':[210,230,255],
   };
-  const DEF=[120,100,180];
-  let curC=[...DEF], tgtC=[...DEF];
+  const DEF = [248, 245, 255]; // near-white with faint violet
+  let curC = [...DEF], tgtC = [...DEF];
 
-  // ── Canvas / resize ──────────────────────────────────────────
   let W, H;
   function resize(){
-    W=canvas.width=window.innerWidth;
-    H=canvas.height=window.innerHeight;
-    buildStreams();
+    W = canvas.width  = window.innerWidth;
+    H = canvas.height = window.innerHeight;
   }
 
-  // ── Vortex ───────────────────────────────────────────────────
-  let vortices=[], prevMX=-1, prevMY=-1;
-  function addVortex(x,y,dx,dy){
-    const s=Math.sqrt(dx*dx+dy*dy);
-    if(s<0.3) return;
-    vortices.push({x,y,str:Math.min(s*1.2,12),age:0,life:120+Math.random()*80});
-  }
+  // ── Particle pool ────────────────────────────────────────────
+  const MAX_P = mobile ? 22 : 38;
+  let particles = [];
 
-  // ── Streams — each spans y: H+30 → -60, always visible ──────
-  const N     = mobile ? 4 : 6;
-  const N_PTS = mobile ? 120 : 200;  // vertical resolution
-  const SWAY  = 55;                  // max px lateral sway
-
-  let streams = [];
-  function makeStream(slot){
-    const xBase = W*((slot+0.12+Math.random()*0.76)/N);
-    const pts=[];
-    for(let i=0;i<N_PTS;i++){
-      const frac=i/(N_PTS-1);
-      pts.push({y:(H+30)-frac*(H+90), dx:0});
-    }
+  function spawn() {
+    // Cluster loosely in a vertical column near center (±35% from center)
+    const cx   = W * (0.33 + Math.random() * 0.34);
+    const r    = 70 + Math.random() * 90;          // puff radius
+    const spd  = 0.45 + Math.random() * 0.55;      // upward px/frame
+    const no   = Math.random() * 500;              // perlin offset
+    const maxOp= 0.055 + Math.random() * 0.045;    // peak opacity per puff
     return {
-      pts, xBase,
-      ns: 0.0022+Math.random()*0.0018,
-      no: Math.random()*300,
-      op: 0.06+Math.random()*0.05,
-      lw: 1.4+Math.random()*2.2,
-      cr:curC[0], cg:curC[1], cb:curC[2],
+      x: cx, y: H + r + Math.random() * 60,
+      r, spd, no, maxOp,
+      vx: 0,
+      t0: 0,   // local time counter for noise
     };
   }
-  function buildStreams(){
-    streams=[];
-    for(let i=0;i<N;i++) streams.push(makeStream(i));
-  }
 
-  // ── Draw ribbon ──────────────────────────────────────────────
-  function drawRibbon(s, xs){
-    if(xs.length<3) return;
-    const h=s.pts;
-    ctx.save();
-    ctx.globalCompositeOperation='lighter';
-    ctx.lineWidth=s.lw;
-    ctx.lineCap='round';
-    ctx.lineJoin='round';
-    const FADE_BOT=18, FADE_TOP=25;
-    for(let i=1;i<N_PTS-1;i++){
-      const botFade=Math.min(i/FADE_BOT,1);
-      const topFade=Math.min((N_PTS-1-i)/FADE_TOP,1);
-      const alpha=botFade*topFade*s.op;
-      if(alpha<0.003) continue;
-      ctx.beginPath();
-      const mx=(xs[i]+xs[i+1])/2, my=(h[i].y+h[i+1].y)/2;
-      ctx.moveTo((xs[i-1]+xs[i])/2,(h[i-1].y+h[i].y)/2);
-      ctx.quadraticCurveTo(xs[i],h[i].y,mx,my);
-      ctx.strokeStyle=`rgba(${s.cr|0},${s.cg|0},${s.cb|0},${alpha.toFixed(3)})`;
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
+  // ── Mouse / touch ────────────────────────────────────────────
+  let mx = -9999, my = -9999;
+  window.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+  window.addEventListener('touchmove', e => {
+    if(!e.touches.length) return;
+    mx = e.touches[0].clientX; my = e.touches[0].clientY;
+  }, {passive:true});
 
-  // ── Tick ─────────────────────────────────────────────────────
-  let t=0;
+  // ── Main loop ────────────────────────────────────────────────
+  let gt = 0; // global time
   function tick(){
-    t+=0.0025;
-    ctx.clearRect(0,0,W,H);
+    gt += 0.0022;
+    ctx.clearRect(0, 0, W, H);
 
-    // Age vortices
-    for(let i=vortices.length-1;i>=0;i--){
-      vortices[i].age++;
-      if(vortices[i].age>vortices[i].life) vortices.splice(i,1);
+    // Color lerp toward target (card tint)
+    for(let c = 0; c < 3; c++) curC[c] += (tgtC[c] - curC[c]) * 0.012;
+
+    // Spawn puffs gradually
+    if(particles.length < MAX_P && Math.random() < (mobile ? 0.18 : 0.25)){
+      particles.push(spawn());
     }
 
-    // Color lerp
-    for(let c=0;c<3;c++) curC[c]+=(tgtC[c]-curC[c])*0.015;
+    const r0 = curC[0]|0, g0 = curC[1]|0, b0 = curC[2]|0;
 
-    for(const s of streams){
-      s.cr+=(curC[0]-s.cr)*0.02;
-      s.cg+=(curC[1]-s.cg)*0.02;
-      s.cb+=(curC[2]-s.cb)*0.02;
+    for(let i = particles.length - 1; i >= 0; i--){
+      const p = particles[i];
+      p.t0 += 0.004;
 
-      // Build x positions: Perlin sway + vortex displacement
-      const xs=new Float32Array(N_PTS);
-      for(let i=0;i<N_PTS;i++){
-        const p=s.pts[i];
-        // Perlin noise lateral sway (time-evolving)
-        const nx=(s.xBase/W)*3+s.no;
-        const ny=(i/N_PTS)*5+t;
-        const sway=noise(nx,ny)*SWAY;
-        // Dampen vortex displacement
-        p.dx*=0.972;
-        xs[i]=s.xBase+sway+p.dx;
+      // ── Upward drift ──────────────────────────────────────
+      p.y -= p.spd;
+
+      // ── Lateral sway via Perlin (slow, organic) ───────────
+      const nx = (p.x / W) * 1.8 + p.no;
+      const ny = gt + p.t0;
+      p.vx += noise(nx, ny) * 0.12;
+      p.vx *= 0.94;
+      p.x  += p.vx;
+
+      // ── Mouse influence: slow gentle push + slight expansion
+      const ddx = p.x - mx, ddy = p.y - my;
+      const d2  = ddx * ddx + ddy * ddy;
+      const INFLUENCE_R = 160;
+      if(d2 < INFLUENCE_R * INFLUENCE_R && d2 > 1){
+        const d   = Math.sqrt(d2);
+        const inf = (1 - d / INFLUENCE_R) * 0.06;
+        p.vx += (ddx / d) * inf;
+        // Slowly expand the puff as if warmth pushes it outward
+        p.r = Math.min(p.r + 0.25, 180);
       }
 
-      // Apply vortices to displacement
-      for(const v of vortices){
-        const tv=1-v.age/v.life;
-        for(let i=0;i<N_PTS;i+=2){
-          const p=s.pts[i];
-          const ex=xs[i]-v.x, ey=p.y-v.y;
-          const d2=ex*ex+ey*ey;
-          if(d2<220*220&&d2>1){
-            const d=Math.sqrt(d2);
-            const inf=(1-d/220)*tv*v.str*0.35;
-            p.dx+=(-ey/d)*inf;
-          }
-        }
+      // ── Remove only after fully above the top edge ─────────
+      if(p.y + p.r < 0){
+        particles.splice(i, 1);
+        continue;
       }
 
-      drawRibbon(s, xs);
+      // ── Opacity envelope ──────────────────────────────────
+      //   Fade in while still below screen bottom
+      //   Full opacity in the middle of the screen
+      //   Fade out only when centre has crossed y=0 (above top)
+      let op;
+      const entryDist = H + p.r;           // y at spawn
+      const traveled  = entryDist - p.y;   // px traveled since spawn
+      const fadeInPx  = 120;               // distance to reach full opacity
+
+      if(traveled < fadeInPx){
+        op = p.maxOp * (traveled / fadeInPx);
+      } else if(p.y > 0){
+        op = p.maxOp;                      // full opacity while on screen
+      } else {
+        // Above the top edge: fade out over one radius
+        op = p.maxOp * Math.max(0, (p.r + p.y) / p.r);
+      }
+
+      if(op < 0.002) continue;
+
+      // ── Draw soft radial gradient blob ────────────────────
+      const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+      grd.addColorStop(0,   `rgba(${r0},${g0},${b0},${op.toFixed(4)})`);
+      grd.addColorStop(0.5, `rgba(${r0},${g0},${b0},${(op*0.4).toFixed(4)})`);
+      grd.addColorStop(1,   `rgba(${r0},${g0},${b0},0)`);
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = grd;
+      ctx.fill();
     }
+
     requestAnimationFrame(tick);
   }
 
@@ -468,20 +464,8 @@
   resize();
   tick();
 
-  // ── Input ────────────────────────────────────────────────────
-  window.addEventListener('mousemove',e=>{
-    addVortex(e.clientX,e.clientY,e.clientX-prevMX,e.clientY-prevMY);
-    prevMX=e.clientX; prevMY=e.clientY;
-  });
-  window.addEventListener('touchmove',e=>{
-    if(!e.touches.length) return;
-    const tc=e.touches[0];
-    addVortex(tc.clientX,tc.clientY,tc.clientX-prevMX,tc.clientY-prevMY);
-    prevMX=tc.clientX; prevMY=tc.clientY;
-  },{passive:true});
-
-  window.triggerCardSmoke=function(bgClass){
-    tgtC=[...(COLOR_MAP[bgClass]||DEF)];
+  window.triggerCardSmoke = function(bgClass){
+    tgtC = [...(COLOR_MAP[bgClass] || DEF)];
   };
 })();
 
