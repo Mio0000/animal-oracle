@@ -373,8 +373,8 @@
   }
 
   // ── Ribbon streams ───────────────────────────────────────────
-  const N   = mobile ? 40 : 60;
-  const LEN = mobile ? 55 : 90;
+  const N   = mobile ? 4 : 6;
+  const LEN = mobile ? 280 : 500;
 
   function makeStream(slot){
     const xBase = W*(slot/N + 0.05 + Math.random()*(0.9/N));
@@ -386,8 +386,8 @@
       ns: 0.0018+Math.random()*0.0012,
       no: Math.random()*200,
       sp: 0.38+Math.random()*0.22,
-      op: 0.07+Math.random()*0.06,
-      lw: 1.4+Math.random()*2.0,
+      op: 0.14+Math.random()*0.10,
+      lw: 2.2+Math.random()*3.5,
       cr:curC[0],cg:curC[1],cb:curC[2],
       life:0, maxLife:800+Math.random()*600,
     };
