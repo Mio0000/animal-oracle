@@ -194,7 +194,8 @@
   .modal-close:hover{opacity:.85}
 
   /* ── Smoke Canvas ── */
-  #smokeCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;filter:blur(9px)}
+  /* z-index:0 → body背景より前、app-container(z:1)より後ろ = 紫背景エリアのみに表示 */
+  #smokeCanvas{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;filter:blur(9px)}
 </style>
 </head>
 <body>
@@ -425,7 +426,7 @@
   // ── Main loop ─────────────────────────────────────────────────
   let gt=0;
   function tick(){
-    gt += 0.0007; // very slow drift
+    gt += 0.004; // visible drift speed
     ctx.clearRect(0,0,W,H);
 
     for(let c=0;c<3;c++) curC[c]+=(tgtC[c]-curC[c])*0.012;
