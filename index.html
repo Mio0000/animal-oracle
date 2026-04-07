@@ -485,8 +485,8 @@
         // Mid-frequency: cotton-candy texture layered on top
         const n2 = pnoise(i*0.10 +gt*0.10+50, j*0.10-gt*0.08+50);
         // Lower base injection → light areas stay sparse, giving bright/dark contrast
-        // Low base (dark gaps stay dark) + high noise peaks (bright = properly white)
-        dens[IX(i,j)] += 0.000055 + Math.max(0, n1*0.0038) + Math.max(0, n2*0.0014);
+        // Low base (dark gaps stay dark) + 10× noise peaks
+        dens[IX(i,j)] += 0.000055 + Math.max(0, n1*0.038) + Math.max(0, n2*0.014);
       }
     }
     // Slow dissipation keeps smoke persistent but not building forever
