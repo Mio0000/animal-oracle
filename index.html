@@ -485,8 +485,8 @@
         // Mid-frequency: cotton-candy texture layered on top
         const n2 = pnoise(i*0.10 +gt*0.10+50, j*0.10-gt*0.08+50);
         // Lower base injection → light areas stay sparse, giving bright/dark contrast
-        // Very low base (30% of previous) → navy stays dominant, smoke is a whisper
-        dens[IX(i,j)] += 0.000055 + Math.max(0, n1*0.0010) + Math.max(0, n2*0.00038);
+        // Low base (dark gaps stay dark) + high noise peaks (bright = properly white)
+        dens[IX(i,j)] += 0.000055 + Math.max(0, n1*0.0038) + Math.max(0, n2*0.0014);
       }
     }
     // Slow dissipation keeps smoke persistent but not building forever
@@ -509,8 +509,8 @@
         const d=dens[IX(i,j)];
         pix[k]   = r; pix[k+1] = g; pix[k+2] = b;
         // Power curve (γ=0.7): dark areas stay dark, bright peaks glow
-        // max α≈0.18 — elegant whisper against navy, not white-out
-        pix[k+3] = d<=0 ? 0 : Math.min(46, (Math.pow(d,0.5)*58)|0);
+        // max α≈0.36 at peaks, near-0 in dark gaps
+        pix[k+3] = d<=0 ? 0 : Math.min(92, (Math.pow(d,0.5)*82)|0);
         k+=4;
       }
     }
@@ -527,7 +527,7 @@
       for(let i=0;i<N2;i++){
         const d=dens[IX(i,j)];
         pix[k]   = r; pix[k+1] = g; pix[k+2] = b;
-        pix[k+3] = d<=0 ? 0 : Math.min(11, (Math.pow(d,0.5)*14)|0); // fog: barely visible halo
+        pix[k+3] = d<=0 ? 0 : Math.min(22, (Math.pow(d,0.5)*26)|0); // fog halo
         k+=4;
       }
     }
